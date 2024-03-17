@@ -40,11 +40,11 @@ jobs:
         run: go test -v ./...
 
       - name: Build demo command
-        run: go build -v
+        run: CGO_ENABLED=0 go build -v
         working-directory: ./cmd/demo
 
       - name: Upload demo command
         uses: actions/upload-artifact@v3
         with:
-          name: demo
+          name: demo.zip
           path: cmd/demo/demo
