@@ -21,8 +21,9 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'npm'
-          working-directory: ./_webui
-      - run: npm install
+          cache-dependency-path: "./_webui/package-lock.json"
+
+      - run: npm ci
         working-directory: ./_webui
       - run: npm run build
         working-directory: ./_webui
