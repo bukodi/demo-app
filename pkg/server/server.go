@@ -14,12 +14,17 @@ type Server struct {
 	srv      *http.Server
 }
 
+var ApiV1Mux = http.NewServeMux()
+
 func NewServer(address string) *Server {
 	demoSrv := &Server{}
 
+	rootMux := http.NewServeMux()
 	demoSrv.srv = &http.Server{
-		Addr: address,
+		Addr:    address,
+		Handler: rootMux,
 	}
+	rootMux.Handle("/api/v1/", http.StripPrefix("/api/v1", ApiV1Mux))
 	return demoSrv
 }
 
