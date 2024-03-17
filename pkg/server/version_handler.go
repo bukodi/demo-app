@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	http.HandleFunc("/api/version", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("GET /api/version", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 			return

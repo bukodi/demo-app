@@ -46,5 +46,5 @@ jobs:
       - name: Upload demo command
         uses: actions/upload-artifact@v3
         with:
-          name: demo.zip
+          name: demo
           path: cmd/demo/demo
