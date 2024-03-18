@@ -50,11 +50,11 @@ jobs:
           path: cmd/demo/demo
 
       - name: Build aws lambda handler
-        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -tags lambda.norpc -o bootstrap main.go && zip demo-aws-lambda.zip bootstrap
+        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -tags lambda.norpc -o bootstrap main.go
         working-directory: ./cmd/demo-aws-lambda
 
       - name: Upload aws lambda handler
         uses: actions/upload-artifact@v3
         with:
           name: demo-aws-lambda
-          path: cmd/demo-aws-lambda/demo-aws-lambda.zip
+          path: cmd/demo-aws-lambda/bootstrap
