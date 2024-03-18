@@ -1,6 +1,3 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
 name: Build
 
 on:
@@ -8,6 +5,8 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 jobs:
 
@@ -15,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Print branch name
+        run: echo Running on $BRANCH_NAME
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -53,8 +55,12 @@ jobs:
         run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -tags lambda.norpc -o bootstrap main.go
         working-directory: ./cmd/demo-aws-lambda
 
+      - name: Create zip for lambda deployment
+        run: zip demo-aws-lambda.zip ./demo-aws-lambda ./env.txt
+        working-directory: ./cmd/demo-aws-lambda
+
       - name: Upload aws lambda handler
         uses: actions/upload-artifact@v3
         with:
-          name: demo-aws-lambda
-          path: cmd/demo-aws-lambda/bootstrap
+          name: demo-aws-lambda-wrapper
+          path: cmd/demo-aws-lambda/demo-aws-lambda.zip
