@@ -9,6 +9,7 @@ import (
 	"github.com/kr/pretty"
 	"log"
 	"log/slog"
+	"net/http"
 	"os"
 )
 
@@ -32,7 +33,10 @@ func main() {
 		log.Printf("env.txt: %s", envtxt)
 	}
 
-	lambdaToHttp = httpadapter.NewV2(server.ApiV1Mux)
+	rootMux := http.NewServeMux()
+	rootMux.Handle("/api/v1/", http.StripPrefix("/api/v1", server.ApiV1Mux))
+
+	lambdaToHttp = httpadapter.NewV2(rootMux)
 	lambda.Start(Handler)
 	log.Println("Lambda finished")
 	slog.Info("Lambda finished slog")
