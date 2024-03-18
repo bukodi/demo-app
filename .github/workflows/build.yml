@@ -56,7 +56,7 @@ jobs:
         working-directory: ./cmd/demo-aws-lambda
 
       - name: Create zip for lambda deployment
-        run: zip demo-aws-lambda.zip ./demo-aws-lambda ./env.txt
+        run: zip demo-aws-lambda.zip ./bootstrap ./env.txt
         working-directory: ./cmd/demo-aws-lambda
 
       - name: Upload aws lambda handler
