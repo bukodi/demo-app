@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
 	"github.com/bukodi/demo-app/pkg/server"
 	"github.com/kr/pretty"
@@ -35,5 +36,6 @@ func main() {
 	rootMux.Handle("/api/v1/", http.StripPrefix("/api/v1", server.ApiV1Mux))
 
 	lambdaToHttp = httpadapter.NewV2(rootMux)
+	lambda.Start(Handler)
 	slog.Info("Lambda finished")
 }
