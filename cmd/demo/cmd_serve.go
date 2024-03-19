@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	demo_app "github.com/bukodi/demo-app"
 	"github.com/bukodi/demo-app/pkg/server"
 	"github.com/spf13/cobra"
@@ -25,7 +26,7 @@ var serveCmd = &cobra.Command{
 			slog.Error("Cant start server", "err", err)
 			os.Exit(-1)
 		} else {
-			slog.Info("Server started. Version: %s (%s)", demo_app.Version, demo_app.GitCommit)
+			slog.Info(fmt.Sprintf("Server started. Version: %s (%s)", demo_app.Version, demo_app.GitCommit))
 		}
 		defer func() {
 			// Shutdown server

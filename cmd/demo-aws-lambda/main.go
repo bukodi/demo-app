@@ -17,7 +17,7 @@ var lambdaToHttp *httpadapter.HandlerAdapterV2
 func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	slog.Debug(fmt.Sprintf("Handler called with: %s\n", pretty.Sprint(req)))
 	resp, err := lambdaToHttp.ProxyWithContext(ctx, req)
-	slog.Debug(fmt.Sprintf("Handler returned with: %%, %+v\n", pretty.Sprint(resp), err))
+	slog.Debug(fmt.Sprintf("Handler returned with: %s, %+v\n", pretty.Sprint(resp), err))
 	return resp, err
 }
 
