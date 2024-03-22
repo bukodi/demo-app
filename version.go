@@ -1,6 +1,8 @@
 package demo_app
 
-import "runtime/debug"
+import (
+	"runtime/debug"
+)
 
 var (
 	Version   = "0.0.2"
