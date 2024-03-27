@@ -8,6 +8,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/kr/pretty v0.3.1
 	github.com/spf13/cobra v1.8.0
+	golang.org/x/crypto v0.18.0
 	gorm.io/gorm v1.25.8
 )
 
