@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Print branch name
         run: echo Running on $BRANCH_NAME
@@ -31,7 +31,7 @@ jobs:
         working-directory: ./_webui
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: '1.22'
 
@@ -51,7 +51,7 @@ jobs:
         working-directory: ./cmd/demo
 
       - name: Upload demo command
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: demo
           path: cmd/demo/demo
@@ -65,7 +65,7 @@ jobs:
         working-directory: ./cmd/demo-aws-lambda
 
       - name: Authenticate AWS
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
             aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
             aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -76,7 +76,7 @@ jobs:
         working-directory: ./cmd/demo-aws-lambda
 
       - name: Create AWS lambda artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: demo-aws-lambda-wrapper
           path: cmd/demo-aws-lambda/demo-aws-lambda.zip
