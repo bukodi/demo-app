@@ -5,11 +5,16 @@ import (
 	"database/sql"
 	"github.com/go-sql-driver/mysql"
 	"os"
+	"strings"
 	"testing"
 )
 
 func TestTiDB(t *testing.T) {
-	password, _ := os.LookupEnv("TIDB_PASSWORD")
+	password, ok := os.LookupEnv("TIDB_PASSWORD")
+	if !ok {
+		t.Skip("TIDB_PASSWORD not set")
+		return
+	}
 
 	mysql.RegisterTLSConfig("tidb", &tls.Config{
 		MinVersion: tls.VersionTLS12,
@@ -18,7 +23,11 @@ func TestTiDB(t *testing.T) {
 
 	db, err := sql.Open("mysql", "iFyxguC8JirCTim.root:"+password+"@tcp(gateway01.eu-central-1.prod.aws.tidbcloud.com:4000)/fortune500?tls=tidb")
 	if err != nil {
-		t.Fatal(err)
+		errTxt := err.Error()
+		if strings.Contains(errTxt, password) {
+			errTxt = strings.ReplaceAll(errTxt, password, "********")
+		}
+		t.Fatal(errTxt)
 	}
 	defer db.Close()
 
