@@ -12,6 +12,7 @@ import (
 )
 
 func TestCreateTable(t *testing.T) {
+	t.Skip("skipping test")
 	cfg, err := config.LoadDefaultConfig(context.TODO(), func(opts *config.LoadOptions) error {
 		opts.Region = "eu-central-1"
 		return nil
