@@ -17,7 +17,6 @@ var db *sql.DB
 var db_init_err error
 
 func init() {
-
 	db, db_init_err = initDb()
 	if db_init_err != nil {
 		slog.Error("Error initializing database", "err", db_init_err)
