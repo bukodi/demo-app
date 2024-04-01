@@ -6,7 +6,7 @@ import (
 )
 
 func TestUserStoreGORM(t *testing.T) {
-	os.Setenv("TIDB_PASSWORD", "setPassword")
+	//os.Setenv("TIDB_PASSWORD", "setPassword")
 	initGORMStore()
 
 	// create a new user
