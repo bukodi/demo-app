@@ -8,7 +8,7 @@ import (
 
 func TestUserStoreGORM(t *testing.T) {
 	os.Unsetenv("DYNAMODB_TABLE_PREFIX")
-	os.Setenv("TIDB_PASSWORD", "O6exJPnS9K1JFRRJ")
+	os.Setenv("TIDB_PASSWORD", "setPassword")
 	if err := initGORMStore(); err != nil {
 		t.Fatal(err)
 	} else if !IsUserStoreSet() {
@@ -21,7 +21,7 @@ func TestUserStoreGORM(t *testing.T) {
 	})
 }
 func TestUserStoreDynamodb(t *testing.T) {
-	t.Skip("skipping dynamodb test")
+	//t.Skip("skipping dynamodb test")
 	os.Unsetenv("TIDB_PASSWORD")
 	os.Setenv("DYNAMODB_TABLE_PREFIX", "demoapp-")
 	if err := initDynamodbStore(); err != nil {
