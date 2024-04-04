@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"github.com/bukodi/demo-app/pkg/data/gormdb"
 	"gorm.io/gorm"
 	"testing"
@@ -35,7 +36,14 @@ type userStoreGORM struct {
 var _ UserStore = (*userStoreGORM)(nil)
 
 func (us *userStoreGORM) Create(ctx context.Context, u *User) error {
-	return us.gromDB.Create(u).Error
+	resp := us.gromDB.Create(u)
+	if resp.Error != nil {
+		return resp.Error
+	} else if resp.RowsAffected != 1 {
+		return fmt.Errorf("record not created")
+	}
+
+	return nil
 }
 
 func (us *userStoreGORM) List(ctx context.Context) ([]*User, error) {
@@ -55,5 +63,8 @@ func (us *userStoreGORM) ByEmail(ctx context.Context, email string) (*User, erro
 
 func (us *userStoreGORM) Delete(ctx context.Context, email string) (bool, error) {
 	tx := us.gromDB.Where("email = ?", email).Delete(&User{})
-	return tx.RowsAffected > 0, tx.Error
+	if tx.Error != nil {
+		return false, tx.Error
+	}
+	return tx.RowsAffected > 0, nil
 }
