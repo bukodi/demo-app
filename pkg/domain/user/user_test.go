@@ -27,13 +27,23 @@ func TestUserStoreDynamodb(t *testing.T) {
 	t.Skip("skipping dynamodb test")
 	os.Unsetenv("TIDB_PASSWORD")
 	os.Setenv("DYNAMODB_TABLE_PREFIX", "demoapp-")
-	initDynamodbStore()
+	if err := initDynamodbStore(); err != nil {
+		t.Fatal(err)
+	}
 
 	// create a new user
 	user, err := Create("email1", "password1")
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer func() {
+		if deleted, err := store().Delete(user.Email); err != nil {
+			t.Fatal(err)
+		} else if !deleted {
+			t.Fatal("user not deleted")
+		}
+	}()
+
 	user2, err := VerifyPassword("email1", "password1")
 	if err != nil {
 		t.Fatal(err)

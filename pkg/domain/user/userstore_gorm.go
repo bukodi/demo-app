@@ -48,3 +48,8 @@ func (us *userStoreGORM) ByEmail(email string) (*User, error) {
 	}
 	return &u, nil
 }
+
+func (us *userStoreGORM) Delete(email string) (bool, error) {
+	tx := us.gromDB.Where("email = ?", email).Delete(&User{})
+	return tx.RowsAffected > 0, tx.Error
+}

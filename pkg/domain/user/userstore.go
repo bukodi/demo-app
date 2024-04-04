@@ -12,6 +12,9 @@ type UserStore interface {
 	List() ([]*User, error)
 	// ByEmail returns a user by email
 	ByEmail(email string) (*User, error)
+
+	// Delete removes a user from the store. Returns true if the user was found and deleted
+	Delete(email string) (bool, error)
 }
 
 var userStoreInstance UserStore
