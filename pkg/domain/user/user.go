@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"fmt"
 )
 
@@ -11,7 +12,7 @@ type User struct {
 	PasswordHash string `json:"password_hash"`
 }
 
-func Create(email string, password string) (*User, error) {
+func Create(ctx context.Context, email string, password string) (*User, error) {
 	u := new(User)
 	u.Email = email
 	pswHash, err := HashAndSaltPassword(password)
@@ -19,12 +20,12 @@ func Create(email string, password string) (*User, error) {
 		return nil, err
 	}
 	u.PasswordHash = pswHash
-	err = store().Create(u)
+	err = store().Create(ctx, u)
 	return u, err
 }
 
-func VerifyPassword(email string, password string) (*User, error) {
-	u, err := store().ByEmail(email)
+func VerifyPassword(ctx context.Context, email string, password string) (*User, error) {
+	u, err := store().ByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}

@@ -1,20 +1,21 @@
 package user
 
 import (
+	"context"
 	"fmt"
 	"sync"
 )
 
 type UserStore interface {
 	// Create inserts a new user into the store
-	Create(user *User) error
+	Create(ctx context.Context, user *User) error
 	// List returns all users from the store
-	List() ([]*User, error)
+	List(ctx context.Context) ([]*User, error)
 	// ByEmail returns a user by email
-	ByEmail(email string) (*User, error)
+	ByEmail(ctx context.Context, email string) (*User, error)
 
 	// Delete removes a user from the store. Returns true if the user was found and deleted
-	Delete(email string) (bool, error)
+	Delete(ctx context.Context, email string) (bool, error)
 }
 
 var userStoreInstance UserStore
@@ -27,6 +28,12 @@ func SetUserStore(us UserStore) {
 		panic(fmt.Sprintf("user store already set: (%T) %s", userStoreInstance, userStoreInstance))
 	}
 	userStoreInstance = us
+}
+
+func IsUserStoreSet() bool {
+	userStoreLock.Lock()
+	defer userStoreLock.Unlock()
+	return userStoreInstance != nil
 }
 
 func store() UserStore {

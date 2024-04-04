@@ -1,68 +1,71 @@
 package user
 
 import (
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"context"
 	"os"
 	"testing"
 )
 
 func TestUserStoreGORM(t *testing.T) {
+	os.Unsetenv("DYNAMODB_TABLE_PREFIX")
 	//os.Setenv("TIDB_PASSWORD", "setPassword")
-	initGORMStore()
+	if err := initGORMStore(); err != nil {
+		t.Fatal(err)
+	} else if !IsUserStoreSet() {
+		t.Skip("store not initialized")
+	}
 
-	// create a new user
-	user, err := Create("email1", "password1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	user2, err := VerifyPassword("email1", "password1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if user.Email != user2.Email {
-		t.Fatal("email mismatch")
-	}
+	ctx := context.TODO()
+	t.Run("GORM-TIDBServerless", func(t *testing.T) {
+		testUserCRUD(ctx, t)
+	})
 }
-
 func TestUserStoreDynamodb(t *testing.T) {
-	u := User{
-		Email:        "email1",
-		PasswordHash: "password1",
-	}
-	item, err := attributevalue.MarshalMap(u)
-	if err != nil {
-		t.Fatal(err)
-	} else {
-		t.Log(item)
-	}
-
-	t.Skip("skipping dynamodb test")
+	//t.Skip("skipping dynamodb test")
 	os.Unsetenv("TIDB_PASSWORD")
 	os.Setenv("DYNAMODB_TABLE_PREFIX", "demoapp-")
 	if err := initDynamodbStore(); err != nil {
 		t.Fatal(err)
+	} else if !IsUserStoreSet() {
+		t.Skip("store not initialized")
 	}
 
+	ctx := context.TODO()
+	t.Run("DynamoDB", func(t *testing.T) {
+		testUserCRUD(ctx, t)
+	})
+}
+
+func testUserCRUD(ctx context.Context, t *testing.T) {
 	// create a new user
-	user, err := Create("email1", "password1")
+	user, err := Create(ctx, "email1", "password1")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer func() {
-		if deleted, err := store().Delete(user.Email); err != nil {
+		if deleted, err := store().Delete(ctx, user.Email); err != nil {
 			t.Fatal(err)
 		} else if !deleted {
 			t.Fatal("user not deleted")
 		}
 	}()
 
-	user2, err := VerifyPassword("email1", "password1")
+	user2, err := VerifyPassword(ctx, "email1", "password1")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if user.Email != user2.Email {
 		t.Fatal("email mismatch")
 	}
+
+	// create user again, it must fail
+	user3, err := Create(ctx, "email1", "password1")
+	if err == nil {
+		t.Errorf("No error received on duplicate key")
+	} else {
+		t.Logf("expected error: %v", err)
+	}
+	_ = user3
 }
 
 func TestPasswordHash(t *testing.T) {
