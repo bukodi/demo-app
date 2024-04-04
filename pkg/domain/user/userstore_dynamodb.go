@@ -7,8 +7,7 @@ import (
 )
 
 // Based on this description: https://dynobase.dev/dynamodb-golang-query-examples/
-// User this ORM utility: https://github.com/guregu/dynamo/tree/v2-dev
-
+// and this: https://docs.aws.amazon.com/code-library/latest/ug/go_2_dynamodb_code_examples.html
 func init() {
 	if !testing.Testing() {
 		initDynamodbStore()

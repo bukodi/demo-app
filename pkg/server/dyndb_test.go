@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -22,6 +23,25 @@ func TestCreateTable(t *testing.T) {
 	}
 
 	svc := dynamodb.NewFromConfig(cfg)
+
+	tableName := "my-table4"
+
+	desc, err := svc.DescribeTable(context.TODO(), &dynamodb.DescribeTableInput{
+		TableName: aws.String(tableName),
+	})
+
+	t.Logf("Table description: %v", desc)
+	if err != nil {
+		var resourceNotFound *types.ResourceNotFoundException
+		if errors.As(err, &resourceNotFound) {
+			fmt.Printf("Table %s does not exist.\n", tableName)
+		} else {
+			fmt.Printf("Failed to describe table %s, %v.\n", tableName, err)
+		}
+	} else {
+		fmt.Printf("Table %s exists.\n", tableName)
+	}
+
 	out, err := svc.CreateTable(context.TODO(), &dynamodb.CreateTableInput{
 		AttributeDefinitions: []types.AttributeDefinition{
 			{
@@ -35,7 +55,7 @@ func TestCreateTable(t *testing.T) {
 				KeyType:       types.KeyTypeHash,
 			},
 		},
-		TableName:   aws.String("my-table"),
+		TableName:   aws.String(tableName),
 		BillingMode: types.BillingModePayPerRequest,
 	})
 	if err != nil {
