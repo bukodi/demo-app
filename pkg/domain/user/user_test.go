@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"os"
 	"testing"
 )
@@ -24,6 +25,17 @@ func TestUserStoreGORM(t *testing.T) {
 }
 
 func TestUserStoreDynamodb(t *testing.T) {
+	u := User{
+		Email:        "email1",
+		PasswordHash: "password1",
+	}
+	item, err := attributevalue.MarshalMap(u)
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		t.Log(item)
+	}
+
 	t.Skip("skipping dynamodb test")
 	os.Unsetenv("TIDB_PASSWORD")
 	os.Setenv("DYNAMODB_TABLE_PREFIX", "demoapp-")
