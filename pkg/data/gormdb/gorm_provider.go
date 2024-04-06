@@ -25,6 +25,7 @@ func Db() *gorm.DB {
 		} else if db == nil {
 			slog.Debug("GORM db isn't configured.")
 		} else {
+			slog.Info("GORM db set", "db", db)
 			dbInstance = db
 		}
 	})
@@ -49,7 +50,7 @@ func initGorm() (*gorm.DB, error) {
 func initSqliteGorm() (*gorm.DB, error) {
 	dsn, ok := os.LookupEnv("SQLITE_DSN")
 	if !ok {
-		slog.Debug("SQLITE_DSN not set")
+		slog.Info("SQLITE_DSN not set")
 		return nil, nil
 	}
 

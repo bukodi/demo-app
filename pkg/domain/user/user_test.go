@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"testing"
 )
@@ -26,6 +27,7 @@ func TestUserStoreSqliteGORM(t *testing.T) {
 	os.Unsetenv("DYNAMODB_TABLE_PREFIX")
 	os.Unsetenv("TIDB_PASSWORD")
 	os.Setenv("SQLITE_DSN", "file::memory:?cache=shared")
+	slog.Info("env vars set for sqlite")
 	if err := initGORMStore(); err != nil {
 		t.Fatal(err)
 	} else if !IsUserStoreSet() {
