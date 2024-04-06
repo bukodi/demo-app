@@ -3,6 +3,7 @@ package gormdb
 import (
 	"errors"
 	"fmt"
+	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log/slog"
@@ -31,7 +32,36 @@ func Db() *gorm.DB {
 	return dbInstance
 }
 
+func defaultGormConfig() *gorm.Config {
+	return &gorm.Config{}
+}
+
 func initGorm() (*gorm.DB, error) {
+	if db, err := initTiDBGorm(); err != nil || db != nil {
+		return db, err
+	}
+	if db, err := initSqliteGorm(); err != nil || db != nil {
+		return db, err
+	}
+	return nil, nil
+}
+
+func initSqliteGorm() (*gorm.DB, error) {
+	dsn, ok := os.LookupEnv("SQLITE_DSN")
+	if !ok {
+		slog.Debug("SQLITE_DSN not set")
+		return nil, nil
+	}
+
+	gormCfg := defaultGormConfig()
+	sqlDb, err := gorm.Open(sqlite.Open(dsn), gormCfg)
+	if err != nil {
+		return nil, err
+	}
+	return sqlDb, nil
+}
+
+func initTiDBGorm() (*gorm.DB, error) {
 	password, ok := os.LookupEnv("TIDB_PASSWORD")
 	if !ok {
 		slog.Debug("TIDB_PASSWORD not set")
@@ -45,7 +75,7 @@ func initGorm() (*gorm.DB, error) {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?tls=true", tidb_user, password, tidb_host, tidb_port, tidb_db_name)
 
-	gormCfg := &gorm.Config{}
+	gormCfg := defaultGormConfig()
 	sqlDb, err := gorm.Open(mysql.Open(dsn), gormCfg)
 	if err != nil {
 		errTxt := err.Error()

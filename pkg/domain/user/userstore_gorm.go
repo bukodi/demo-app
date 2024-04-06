@@ -36,14 +36,18 @@ type userStoreGORM struct {
 var _ UserStore = (*userStoreGORM)(nil)
 
 func (us *userStoreGORM) Create(ctx context.Context, u *User) error {
-	resp := us.gromDB.Create(u)
+	tx := us.gromDB.Begin()
+	resp := tx.Create(u)
 	if resp.Error != nil {
+		tx.Rollback()
 		return resp.Error
 	} else if resp.RowsAffected != 1 {
+		tx.Rollback()
 		return fmt.Errorf("record not created")
+	} else {
+		tx.Commit()
+		return nil
 	}
-
-	return nil
 }
 
 func (us *userStoreGORM) List(ctx context.Context) ([]*User, error) {
@@ -62,9 +66,12 @@ func (us *userStoreGORM) ByEmail(ctx context.Context, email string) (*User, erro
 }
 
 func (us *userStoreGORM) Delete(ctx context.Context, email string) (bool, error) {
-	tx := us.gromDB.Where("email = ?", email).Delete(&User{})
-	if tx.Error != nil {
+	tx := us.gromDB.Begin()
+	resp := tx.Where("email = ?", email).Delete(&User{})
+	if resp.Error != nil {
+		tx.Rollback()
 		return false, tx.Error
 	}
-	return tx.RowsAffected > 0, nil
+	tx.Commit()
+	return resp.RowsAffected > 0, nil
 }

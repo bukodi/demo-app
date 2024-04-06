@@ -7,9 +7,15 @@ import (
 
 var ErrInvalidCredentials = fmt.Errorf("invalid credentials")
 
+const (
+	RoleEndUser string = "end_user"
+	RoleAdmin   string = "admin"
+)
+
 type User struct {
 	Email        string `json:"email"`
 	PasswordHash string `json:"password_hash"`
+	Role         string `json:"role"`
 }
 
 func Create(ctx context.Context, email string, password string) (*User, error) {

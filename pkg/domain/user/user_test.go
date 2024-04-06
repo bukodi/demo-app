@@ -6,7 +6,8 @@ import (
 	"testing"
 )
 
-func TestUserStoreGORM(t *testing.T) {
+func TestUserStoreTiDBGORM(t *testing.T) {
+	os.Unsetenv("SQLITE_DSN")
 	os.Unsetenv("DYNAMODB_TABLE_PREFIX")
 	os.Setenv("TIDB_PASSWORD", "setPassword")
 	if err := initGORMStore(); err != nil {
@@ -20,8 +21,26 @@ func TestUserStoreGORM(t *testing.T) {
 		testUserCRUD(ctx, t)
 	})
 }
+
+func TestUserStoreSqliteGORM(t *testing.T) {
+	os.Unsetenv("DYNAMODB_TABLE_PREFIX")
+	os.Unsetenv("TIDB_PASSWORD")
+	os.Setenv("SQLITE_DSN", "file::memory:?cache=shared")
+	if err := initGORMStore(); err != nil {
+		t.Fatal(err)
+	} else if !IsUserStoreSet() {
+		t.Skip("store not initialized")
+	}
+
+	ctx := context.TODO()
+	t.Run("GORM-Sqlite", func(t *testing.T) {
+		testUserCRUD(ctx, t)
+	})
+}
+
 func TestUserStoreDynamodb(t *testing.T) {
 	//t.Skip("skipping dynamodb test")
+	os.Unsetenv("SQLITE_DSN")
 	os.Unsetenv("TIDB_PASSWORD")
 	os.Setenv("DYNAMODB_TABLE_PREFIX", "demoapp-")
 	if err := initDynamodbStore(); err != nil {
