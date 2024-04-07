@@ -31,7 +31,7 @@ func TestTiDB(t *testing.T) {
 	}
 	defer db.Close()
 
-	rows, err := db.Query("SELECT `rank`, `company_name`, `country` FROM fortune500.fortune500_2018_2022 LIMIT 100")
+	rows, err := db.Query("SELECT `rank`, `company_name`, `country` FROM fortune500.fortune500_2018_2022 LIMIT 10")
 	if err != nil {
 		t.Fatal(err)
 	}

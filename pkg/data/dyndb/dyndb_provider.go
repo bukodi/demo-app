@@ -9,32 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"log/slog"
 	"os"
-	"sync"
 )
 
-var (
-	dbInstance  *dynamodb.Client
-	tablePrefix string
-	once        sync.Once
-)
-
-func Client() (*dynamodb.Client, string) {
-	once.Do(func() {
-		db, tp, err := initGorm()
-		if err != nil {
-			slog.Error("can't initialize DynamoDB: %s", err.Error(), "err", err)
-		} else if db == nil {
-			slog.Debug("DynamoDB isn't configured.")
-		} else {
-			dbInstance = db
-			tablePrefix = tp
-		}
-	})
-
-	return dbInstance, tablePrefix
-}
-
-func initGorm() (*dynamodb.Client, string, error) {
+func InitDynamoDB(ctx context.Context) (*dynamodb.Client, string, error) {
 	tablePrefix, ok := os.LookupEnv("DYNAMODB_TABLE_PREFIX")
 	if !ok {
 		slog.Debug("DYNAMODB_TABLE_PREFIX not set")

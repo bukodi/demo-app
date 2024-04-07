@@ -9,32 +9,29 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/bukodi/demo-app/pkg/data/dyndb"
 	"log/slog"
-	"testing"
 )
 
 // Based on this description: https://dynobase.dev/dynamodb-golang-query-examples/
 // and this: https://docs.aws.amazon.com/code-library/latest/ug/go_2_dynamodb_code_examples.html
 func init() {
-	if !testing.Testing() {
-		initDynamodbStore()
-	}
-}
-
-func initDynamodbStore() error {
-	cli, tablePrefix := dyndb.Client()
-	if cli == nil {
-		return nil
-	}
-	us := userStoreDynDB{
-		dynDbSvc:  cli,
-		tableName: tablePrefix + "users",
-	}
-	err := us.migrateTable()
-	if err != nil {
-		return err
-	}
-	SetUserStore(&us)
-	return nil
+	RegisterUserStoreProvider("dynamodb", func(ctx context.Context) (UserStore, error) {
+		cli, tablePrefix, err := dyndb.InitDynamoDB(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if cli == nil {
+			return nil, nil
+		}
+		us := userStoreDynDB{
+			dynDbSvc:  cli,
+			tableName: tablePrefix + "users",
+		}
+		err = us.migrateTable()
+		if err != nil {
+			return nil, err
+		}
+		return &us, nil
+	})
 }
 
 type userStoreDynDB struct {
@@ -66,6 +63,10 @@ func (store *userStoreDynDB) migrateTable() error {
 		TableName:   aws.String(store.tableName),
 		BillingMode: types.BillingModePayPerRequest,
 	})
+}
+
+func (store *userStoreDynDB) Close() error {
+	return nil
 }
 
 func (store *userStoreDynDB) Create(ctx context.Context, u *User) error {

@@ -1,6 +1,7 @@
 package gormdb
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/glebarez/sqlite"
@@ -9,45 +10,23 @@ import (
 	"log/slog"
 	"os"
 	"strings"
-	"sync"
 )
-
-var (
-	dbInstance *gorm.DB
-	once       sync.Once
-)
-
-func Db() *gorm.DB {
-	once.Do(func() {
-		db, err := initGorm()
-		if err != nil {
-			slog.Error("can't initialize GORM db: %s", err.Error(), "err", err)
-		} else if db == nil {
-			slog.Debug("GORM db isn't configured.")
-		} else {
-			slog.Info("GORM db set", "db", db)
-			dbInstance = db
-		}
-	})
-
-	return dbInstance
-}
 
 func defaultGormConfig() *gorm.Config {
 	return &gorm.Config{}
 }
 
-func initGorm() (*gorm.DB, error) {
-	if db, err := initTiDBGorm(); err != nil || db != nil {
+func InitGorm(ctx context.Context) (*gorm.DB, error) {
+	if db, err := initTiDBGorm(ctx); err != nil || db != nil {
 		return db, err
 	}
-	if db, err := initSqliteGorm(); err != nil || db != nil {
+	if db, err := initSqliteGorm(ctx); err != nil || db != nil {
 		return db, err
 	}
 	return nil, nil
 }
 
-func initSqliteGorm() (*gorm.DB, error) {
+func initSqliteGorm(ctx context.Context) (*gorm.DB, error) {
 	dsn, ok := os.LookupEnv("SQLITE_DSN")
 	if !ok {
 		slog.Info("SQLITE_DSN not set")
@@ -62,7 +41,7 @@ func initSqliteGorm() (*gorm.DB, error) {
 	return sqlDb, nil
 }
 
-func initTiDBGorm() (*gorm.DB, error) {
+func initTiDBGorm(ctx context.Context) (*gorm.DB, error) {
 	password, ok := os.LookupEnv("TIDB_PASSWORD")
 	if !ok {
 		slog.Debug("TIDB_PASSWORD not set")
