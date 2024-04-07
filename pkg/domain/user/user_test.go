@@ -9,13 +9,10 @@ import (
 func TestUserStoreTiDBGORM(t *testing.T) {
 	os.Unsetenv("SQLITE_DSN")
 	os.Unsetenv("DYNAMODB_TABLE_PREFIX")
-	os.Setenv("TIDB_PASSWORD", "setPassword")
+	//os.Setenv("TIDB_PASSWORD", "setPassword")
 	ResetUserStore()
 
-	ctx := context.TODO()
-	t.Run("GORM-TIDBServerless", func(t *testing.T) {
-		testUserCRUD(ctx, t)
-	})
+	testUserCRUD(context.TODO(), t)
 }
 
 func TestUserStoreSqliteGORM(t *testing.T) {
@@ -24,10 +21,7 @@ func TestUserStoreSqliteGORM(t *testing.T) {
 	os.Setenv("SQLITE_DSN", "file::memory:?cache=shared")
 	ResetUserStore()
 
-	ctx := context.TODO()
-	t.Run("GORM-Sqlite", func(t *testing.T) {
-		testUserCRUD(ctx, t)
-	})
+	testUserCRUD(context.TODO(), t)
 }
 
 func TestUserStoreDynamodb(t *testing.T) {
@@ -37,10 +31,7 @@ func TestUserStoreDynamodb(t *testing.T) {
 	os.Setenv("DYNAMODB_TABLE_PREFIX", "demoapp-")
 	ResetUserStore()
 
-	ctx := context.TODO()
-	t.Run("DynamoDB", func(t *testing.T) {
-		testUserCRUD(ctx, t)
-	})
+	testUserCRUD(context.TODO(), t)
 }
 
 func testUserCRUD(ctx context.Context, t *testing.T) {
