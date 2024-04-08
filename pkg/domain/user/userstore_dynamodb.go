@@ -14,7 +14,7 @@ import (
 // Based on this description: https://dynobase.dev/dynamodb-golang-query-examples/
 // and this: https://docs.aws.amazon.com/code-library/latest/ug/go_2_dynamodb_code_examples.html
 func init() {
-	RegisterUserStoreProvider("dynamodb", func(ctx context.Context) (UserStore, error) {
+	RegisterStoreProvider("dynamodb", func(ctx context.Context) (Store, error) {
 		cli, tablePrefix, err := dyndb.InitDynamoDB(ctx)
 		if err != nil {
 			return nil, err
@@ -127,4 +127,4 @@ func (store *userStoreDynDB) Delete(ctx context.Context, email string) (bool, er
 	return true, err
 }
 
-var _ UserStore = (*userStoreDynDB)(nil)
+var _ Store = (*userStoreDynDB)(nil)

@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	RegisterUserStoreProvider("gorm", func(ctx context.Context) (UserStore, error) {
+	RegisterStoreProvider("gorm", func(ctx context.Context) (Store, error) {
 		db, err := gormdb.InitGorm(ctx)
 		if err != nil {
 			return nil, err
@@ -31,7 +31,7 @@ type userStoreGORM struct {
 	gromDB *gorm.DB
 }
 
-var _ UserStore = (*userStoreGORM)(nil)
+var _ Store = (*userStoreGORM)(nil)
 
 func (us *userStoreGORM) Close() error {
 	return nil

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"unsafe"
 )
 
 type GenericSpi[T any] struct {
@@ -37,6 +38,11 @@ func NewGenericSpi[T any]() *GenericSpi[T] {
 var errBadProgramStructure = errors.New("bad program structure, provider registration must be single-thread and must happen before any other usage than Reset()")
 var errStoreNotInitialized = errors.New("not initialized")
 
+func (spi *GenericSpi[T]) isNil(t T) bool {
+	ptr := (*uintptr)(unsafe.Pointer(&t))
+	return *ptr == 0
+}
+
 func (spi *GenericSpi[T]) RegisterProvider(providerName string, initFn func(context.Context) (T, error)) {
 	if ok := spi.mutex.TryLock(); !ok {
 		panic(fmt.Errorf("can't register provider. %w", errBadProgramStructure))
@@ -58,7 +64,7 @@ func (spi *GenericSpi[T]) Reset() {
 	spi.mutex.Lock()
 	defer spi.mutex.Unlock()
 	prevStore := spi.actualAtomic.Swap(&instanceWrapper[T]{initErr: errStoreNotInitialized}).(*instanceWrapper[T]).instance
-	if prevStore != nil {
+	if !spi.isNil(prevStore) {
 		// TODO: implement closer
 		// if closer, ok := prevStore.(interface{ Close() error }); ok {
 		//	closer.Close()
@@ -68,7 +74,7 @@ func (spi *GenericSpi[T]) Reset() {
 
 func (spi *GenericSpi[T]) IsSet() (bool, error) {
 	w := spi.actualAtomic.Load().(*instanceWrapper[T])
-	if w.instance == nil {
+	if spi.isNil(w.instance) {
 		if errors.Is(w.initErr, errStoreNotInitialized) {
 			return false, nil
 		} else {
@@ -81,7 +87,7 @@ func (spi *GenericSpi[T]) IsSet() (bool, error) {
 
 func (spi *GenericSpi[T]) Actual() (T, error) {
 	prevWrapper := spi.actualAtomic.Load().(*instanceWrapper[T])
-	if prevWrapper.instance != nil {
+	if !spi.isNil(prevWrapper.instance) {
 		// valid store set
 		return prevWrapper.instance, nil
 	} else if !errors.Is(prevWrapper.initErr, errStoreNotInitialized) {
@@ -105,7 +111,7 @@ func (spi *GenericSpi[T]) Actual() (T, error) {
 		if err != nil {
 			wasError = true
 			initLog = fmt.Errorf("initializer %s failed with: %w", provName, err)
-		} else if us == nil {
+		} else if spi.isNil(us) {
 			initLog = fmt.Errorf("initializer %s returned with nil", provName)
 		} else {
 			initResults = append(initResults, us)
