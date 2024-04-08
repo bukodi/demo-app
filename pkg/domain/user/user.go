@@ -41,3 +41,7 @@ func VerifyPassword(ctx context.Context, email string, password string) (*User, 
 	}
 	return u, nil
 }
+
+func List(ctx context.Context) ([]*User, error) {
+	return store().List(ctx)
+}

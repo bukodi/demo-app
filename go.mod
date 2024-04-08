@@ -11,6 +11,7 @@ require (
 	github.com/awslabs/aws-lambda-go-api-proxy v0.16.1
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-sql-driver/mysql v1.8.1
+	github.com/json-iterator/go v1.1.12
 	github.com/kr/pretty v0.3.1
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/crypto v0.18.0
@@ -42,6 +43,8 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

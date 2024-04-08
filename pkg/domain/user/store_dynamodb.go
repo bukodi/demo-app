@@ -89,8 +89,36 @@ func (store *userStoreDynDB) Create(ctx context.Context, u *User) error {
 }
 
 func (store *userStoreDynDB) List(ctx context.Context) ([]*User, error) {
-	//TODO implement me
-	panic("implement me")
+	// Initialize an empty slice to hold the users
+	var users []*User
+
+	// Create the Scan input
+	scanInput := &dynamodb.ScanInput{
+		TableName: aws.String(store.tableName),
+	}
+
+	// Perform the Scan operation
+	scanResponse, err := store.dynDbSvc.Scan(ctx, scanInput)
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate over the items in the scan response
+	for _, item := range scanResponse.Items {
+		// Initialize a new User
+		user := &User{}
+
+		// Unmarshal the item into the User
+		err := attributevalue.UnmarshalMap(item, user)
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the User to the slice
+		users = append(users, user)
+	}
+
+	return users, nil
 }
 
 func (store *userStoreDynDB) ByEmail(ctx context.Context, email string) (*User, error) {

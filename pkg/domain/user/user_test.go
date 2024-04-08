@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"fmt"
+	"math/rand/v2"
 	"os"
 	"testing"
 )
@@ -11,6 +13,12 @@ func TestUserStoreTiDBGORM(t *testing.T) {
 	os.Unsetenv("DYNAMODB_TABLE_PREFIX")
 	//os.Setenv("TIDB_PASSWORD", "setPassword")
 	ResetStore()
+
+	set, _ := spi.IsSet()
+	if !set {
+		t.Skip("TIDB_PASSWORD not set")
+		return
+	}
 
 	testUserCRUD(context.TODO(), t)
 }
@@ -35,8 +43,10 @@ func TestUserStoreDynamodb(t *testing.T) {
 }
 
 func testUserCRUD(ctx context.Context, t *testing.T) {
+	email := fmt.Sprintf("email-%d", rand.N(900)+100)
+
 	// create a new user
-	user, err := Create(ctx, "email1", "password1")
+	user, err := Create(ctx, email, "password1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +58,7 @@ func testUserCRUD(ctx context.Context, t *testing.T) {
 		}
 	}()
 
-	user2, err := VerifyPassword(ctx, "email1", "password1")
+	user2, err := VerifyPassword(ctx, email, "password1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,8 +66,25 @@ func testUserCRUD(ctx context.Context, t *testing.T) {
 		t.Fatal("email mismatch")
 	}
 
+	users, err := List(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var foundUser *User
+	for _, u := range users {
+		if u.Email == user.Email {
+			foundUser = u
+			break
+		}
+	}
+
+	if foundUser == nil {
+		t.Fatal("user not found in list")
+	}
+
 	// create user again, it must fail
-	user3, err := Create(ctx, "email1", "password1")
+	user3, err := Create(ctx, email, "password1")
 	if err == nil {
 		// .Errorf("No error received on duplicate key")
 	} else {
