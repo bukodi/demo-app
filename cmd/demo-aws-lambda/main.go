@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
+	_ "github.com/bukodi/demo-app/pkg/domain/user"
 	"github.com/bukodi/demo-app/pkg/server"
 	"github.com/kr/pretty"
 	"log/slog"
