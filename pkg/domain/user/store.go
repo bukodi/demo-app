@@ -38,7 +38,7 @@ func RegisterStoreProvider(providerName string, initFn func(context.Context) (St
 	spi.RegisterProvider(providerName, initFn)
 }
 
-func ReseStore() {
+func ResetStore() {
 	spi.Reset()
 }
 
