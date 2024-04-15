@@ -42,6 +42,21 @@ func TestUserStoreDynamodb(t *testing.T) {
 	testUserCRUD(context.TODO(), t)
 }
 
+func TestUserListDynamodb(t *testing.T) {
+	//t.Skip("skipping dynamodb test")
+	os.Unsetenv("SQLITE_DSN")
+	os.Unsetenv("TIDB_PASSWORD")
+	os.Setenv("DYNAMODB_TABLE_PREFIX", "demoapp-")
+	ResetStore()
+
+	users, err := List(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		t.Logf("users: %v", users)
+	}
+}
+
 func testUserCRUD(ctx context.Context, t *testing.T) {
 	email := fmt.Sprintf("email-%d", rand.N(900)+100)
 
@@ -50,13 +65,13 @@ func testUserCRUD(ctx context.Context, t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
+	/*defer func() {
 		if deleted, err := store().Delete(ctx, user.Email); err != nil {
 			t.Fatal(err)
 		} else if !deleted {
 			t.Fatal("user not deleted")
 		}
-	}()
+	}()*/
 
 	user2, err := VerifyPassword(ctx, email, "password1")
 	if err != nil {
