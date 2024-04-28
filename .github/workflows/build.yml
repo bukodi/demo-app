@@ -15,8 +15,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Print branch name
-        run: echo Running on $BRANCH_NAME
+      - name: Prepare build environment
+        run: |
+          echo Running on $BRANCH_NAME
+          mkdir build-results
+          wget -q https://github.com/Zxilly/go-size-analyzer/releases/download/v0.2.4/go-size-analyzer_linux_amd64.tar.gz -O gsa.tar.gz 
+          tar -xzf gsa.tar.gz gsa
+          chmod +x gsa
+        working-directory: /tmp
+          
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -50,7 +57,9 @@ jobs:
         run: go test -v ./...
 
       - name: Build demo command
-        run: CGO_ENABLED=0 go build -v
+        run: |
+          CGO_ENABLED=0 go build -v
+          /tmp/gsa ./demo --format=html -o /tmp/build-results/demo-size-analysis.html
         working-directory: ./cmd/demo
 
       - name: Upload demo command
@@ -58,6 +67,12 @@ jobs:
         with:
           name: demo
           path: cmd/demo/demo
+
+      - name: Upload build results
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-results
+          path: /tmp/build-results
 
       - name: Build aws lambda handler
         run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -tags lambda.norpc -o bootstrap
