@@ -15,16 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare build environment
-        run: |
-          echo Running on $BRANCH_NAME
-          mkdir build-results
-          wget -q https://github.com/Zxilly/go-size-analyzer/releases/download/v0.2.4/go-size-analyzer_linux_amd64.tar.gz -O gsa.tar.gz 
-          tar -xzf gsa.tar.gz gsa
-          chmod +x gsa
-        working-directory: /tmp
-          
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -32,15 +22,26 @@ jobs:
           cache: 'npm'
           cache-dependency-path: "./_webui/package-lock.json"
 
-      - run: npm ci
-        working-directory: ./_webui
-      - run: npm run build
-        working-directory: ./_webui
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+
+      - name: Prepare build environment
+        run: |
+          echo Running on $BRANCH_NAME
+          mkdir build-results
+          wget -q https://github.com/Zxilly/go-size-analyzer/releases/download/v0.2.4/go-size-analyzer_linux_amd64.tar.gz -O gsa.tar.gz 
+          tar -xzf gsa.tar.gz gsa
+          chmod +x gsa
+          go install github.com/medyagh/gopogh/cmd/gopogh@latest
+        working-directory: /tmp
+          
+
+      - run: npm ci
+        working-directory: ./_webui
+      - run: npm run build
+        working-directory: ./_webui
 
       - name: Dump Go env
         run: go env
@@ -54,12 +55,15 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: "eu-central-1"
-        run: go test -v ./...
+        run: |
+          go test ./... -coverprofile /tmp/build-results/cover.out -json > /tmp/build-results/test-report.json
+          go tool cover -html=/tmp/build-results/cover.out -o /tmp/build-results/cover.html
+          gopogh -in /tmp/build-results/test-report.json -out_html /tmp/build-results/test-report.html -out_summary /tmp/build-results/test-summary.json
 
       - name: Build demo command
         run: |
           CGO_ENABLED=0 go build -v
-          /tmp/gsa ./demo --format=html -o /tmp/build-results/demo-size-analysis.html
+          /tmp/gsa ./demo --hide-progress --format=html -o /tmp/build-results/demo-size-analysis.html
         working-directory: ./cmd/demo
 
       - name: Upload demo command
