@@ -1,6 +1,9 @@
 package user
 
-import "github.com/bukodi/demo-app/pkg/authz"
+import (
+	"github.com/bukodi/demo-app/pkg/authn"
+	"github.com/bukodi/demo-app/pkg/authz"
+)
 
 type authzType struct{} // dummy type to implement authz.Type
 func (authzType) TypeName() string {
@@ -9,7 +12,11 @@ func (authzType) TypeName() string {
 
 var AuthzType authz.Type = authzType{}
 
-var _ authz.User = (*User)(nil)
+var _ authn.User = (*User)(nil)
+
+func (u *User) HasRole(role string) bool {
+	return u.Role == role
+}
 
 func (u *User) String() string {
 	return u.Email

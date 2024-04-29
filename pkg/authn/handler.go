@@ -5,8 +5,15 @@ import (
 	"net/http"
 )
 
-func AuthnHandler(next http.HandlerFunc, w http.ResponseWriter, r *http.Request) {
+func Handler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		HandlerFunc(next.ServeHTTP, w, r)
+	})
+}
+
+func HandlerFunc(next http.HandlerFunc, w http.ResponseWriter, r *http.Request) {
 	authnCtx := context.WithValue(r.Context(), contextKeyAuthData, &authData{})
-	r.WithContext(authnCtx)
-	next(w, r)
+	r2 := r.WithContext(authnCtx)
+	w2 := newResponseWrapper(r2.Context(), w)
+	next(w2, r2)
 }
