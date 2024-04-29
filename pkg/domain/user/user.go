@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"github.com/bukodi/demo-app/pkg/authn"
 )
 
 var ErrInvalidCredentials = fmt.Errorf("invalid credentials")
@@ -43,5 +44,9 @@ func VerifyPassword(ctx context.Context, email string, password string) (*User, 
 }
 
 func List(ctx context.Context) ([]*User, error) {
+	authnUser := authn.GetUser(ctx)
+	if authnUser == nil || !authnUser.HasRole(RoleAdmin) {
+		return nil, fmt.Errorf("unauthorized")
+	}
 	return store().List(ctx)
 }
