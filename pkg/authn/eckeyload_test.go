@@ -1,4 +1,4 @@
-package main
+package authn
 
 import (
 	"crypto/ecdsa"
@@ -36,20 +36,36 @@ func TestLoadECKeyFromEnv(t *testing.T) {
 	}
 }
 
-func TestGenECKeyFromSeed(t *testing.T) {
-
-	seed := "my seed"
+func genEcdsaP256KeyFromSeed(seed string) *ecdsa.PrivateKey {
 	dBytes := sha256.Sum256([]byte(seed))
-
-	privKeyLoaded := new(ecdsa.PrivateKey)
+	privKey := new(ecdsa.PrivateKey)
 	curve := elliptic.P256()
-	privKeyLoaded.PublicKey.Curve = curve
+	privKey.PublicKey.Curve = curve
 	d := new(big.Int)
 	d.SetBytes(dBytes[:])
-	privKeyLoaded.D = d
-	privKeyLoaded.PublicKey.X, privKeyLoaded.PublicKey.Y = curve.ScalarBaseMult(d.Bytes())
+	privKey.D = d
+	privKey.PublicKey.X, privKey.PublicKey.Y = curve.ScalarBaseMult(d.Bytes())
 
+	return privKey
+}
+
+func TestGenECKeyFromSeed(t *testing.T) {
+
+	key1 := genEcdsaP256KeyFromSeed("my seed")
 	msg := "Hello world"
 	msgHash := sha256.Sum256([]byte(msg))
-	ecdsa.Sign(rand.Reader, privKeyLoaded, msgHash[:])
+	signature, err := ecdsa.SignASN1(rand.Reader, key1, msgHash[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	key2 := genEcdsaP256KeyFromSeed("my seed")
+	if !ecdsa.VerifyASN1(&key2.PublicKey, msgHash[:], signature) {
+		t.Fatal("signature verification failed")
+	}
+
+	key3 := genEcdsaP256KeyFromSeed("other seed")
+	if ecdsa.VerifyASN1(&key3.PublicKey, msgHash[:], signature) {
+		t.Fatal("signature verification must failed")
+	}
 }
