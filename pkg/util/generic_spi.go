@@ -53,7 +53,7 @@ func (spi *GenericSpi[T]) RegisterProvider(providerName string, initFn func(cont
 	}
 
 	if spi.providers[providerName] != nil {
-		slog.Warn("provider already registered", "providerName", providerName)
+		slog.Warn("provider already registered", "name", providerName)
 		return
 	} else {
 		spi.providers[providerName] = initFn

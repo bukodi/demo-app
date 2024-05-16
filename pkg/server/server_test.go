@@ -4,11 +4,14 @@ import (
 	"fmt"
 	demo_app "github.com/bukodi/demo-app"
 	"io"
+	"log/slog"
 	"net/http"
 	"testing"
 )
 
 func TestServer(t *testing.T) {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
+
 	srv := NewServer(":0")
 	if err := srv.Start(); err != nil {
 		t.Fatal(err)

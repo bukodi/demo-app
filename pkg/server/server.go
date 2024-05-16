@@ -11,41 +11,50 @@ import (
 
 type Server struct {
 	listener net.Listener
-	srv      *http.Server
+	httpSrv  *http.Server
+	rootMux  *http.ServeMux
+	apiMux   *http.ServeMux
 }
 
 var ApiV1Mux = http.NewServeMux()
 
 func NewServer(address string) *Server {
-	demoSrv := &Server{}
-
-	rootMux := http.NewServeMux()
-	demoSrv.srv = &http.Server{
-		Addr:    address,
-		Handler: rootMux,
+	srv := &Server{
+		rootMux: http.NewServeMux(),
+		apiMux:  http.NewServeMux(),
+		httpSrv: &http.Server{
+			Addr: address,
+		},
 	}
-	rootMux.Handle("/api/v1/", http.StripPrefix("/api/v1", ApiV1Mux))
-	return demoSrv
+
+	srv.httpSrv.Handler = srv.rootMux
+	srv.rootMux.Handle("/api/v1/", http.StripPrefix("/api/v1", srv.apiMux))
+
+	if err := srv.initPlugins(); err != nil {
+		slog.Error("Initialization of plugins failed", "err", err)
+	}
+
+	return srv
 }
 
-func (s *Server) Start() error {
-	l, err := net.Listen("tcp", s.srv.Addr)
+func (srv *Server) Start() error {
+	l, err := net.Listen("tcp", srv.httpSrv.Addr)
 	if err != nil {
 		return err
 	}
-	s.listener = l
-	go s.srv.Serve(l)
-	slog.Info(fmt.Sprintf("Server started on http://%s", s.listener.Addr()))
+	srv.listener = l
+	go srv.httpSrv.Serve(l)
+	slog.Info(fmt.Sprintf("Server started on http://%s", srv.listener.Addr()))
 	return nil
 }
 
-func (s *Server) Addr() string {
-	return s.listener.Addr().String()
+func (srv *Server) Addr() string {
+	return srv.listener.Addr().String()
 }
 
-func (s *Server) Stop() error {
+func (srv *Server) Stop() error {
 	ctx, _ := context.WithTimeoutCause(context.Background(), time.Millisecond*100, context.Canceled)
-	if err := s.srv.Shutdown(ctx); err != nil {
+	if err := srv.httpSrv.Shutdown(ctx); err != nil {
 		return err
 	}
 

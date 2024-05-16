@@ -9,8 +9,11 @@ import (
 )
 
 func init() {
-	server.ApiV1Mux.HandleFunc("GET /user/list", authz.CheckHttpHandler(handleList, nil, nil))
-	server.ApiV1Mux.HandleFunc("POST /user", handleCreate)
+	server.RegisterPlugin("user", func(srv *server.ServerInit) error {
+		srv.AddApiHandler("GET /user/list", authz.CheckHttpHandler(handleList, nil, nil))
+		srv.AddApiHandler("POST /user", http.HandlerFunc(handleCreate))
+		return nil
+	})
 }
 
 func handleCreate(w http.ResponseWriter, r *http.Request) {
