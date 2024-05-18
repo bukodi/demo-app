@@ -55,3 +55,11 @@ func (srvInit *ServerInit) AddRootHandler(pattern string, handler http.Handler) 
 func (srvInit *ServerInit) AddApiHandler(pattern string, handler http.Handler) {
 	srvInit.srv.apiMux.Handle(pattern, handler)
 }
+
+type MiddlewareHandler func(http.Handler) http.Handler
+
+func (srvInit *ServerInit) AddMiddleware(mwHandler MiddlewareHandler) {
+	srvInit.srv.httpSrv.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mwHandler(srvInit.srv.rootMux).ServeHTTP(w, r)
+	})
+}
