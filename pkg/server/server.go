@@ -16,8 +16,6 @@ type Server struct {
 	apiMux   *http.ServeMux
 }
 
-var ApiV1Mux = http.NewServeMux()
-
 func NewServer(address string) *Server {
 	srv := &Server{
 		rootMux: http.NewServeMux(),
@@ -38,6 +36,10 @@ func NewServer(address string) *Server {
 }
 
 func (srv *Server) Start() error {
+	if srv.httpSrv.Addr == "" {
+		slog.Debug("Server address not set")
+		return nil
+	}
 	l, err := net.Listen("tcp", srv.httpSrv.Addr)
 	if err != nil {
 		return err
@@ -49,7 +51,14 @@ func (srv *Server) Start() error {
 }
 
 func (srv *Server) Addr() string {
+	if srv.listener == nil {
+		return ""
+	}
 	return srv.listener.Addr().String()
+}
+
+func (srv *Server) RootHandler() http.Handler {
+	return srv.httpSrv.Handler
 }
 
 func (srv *Server) Stop() error {

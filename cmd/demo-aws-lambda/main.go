@@ -11,7 +11,6 @@ import (
 	"github.com/bukodi/demo-app/pkg/server"
 	"github.com/kr/pretty"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 )
@@ -42,15 +41,8 @@ func main() {
 		slog.Info(fmt.Sprintf("env.txt: %s", envtxt))
 	}
 
-	rootMux := http.NewServeMux()
-	rootMux.Handle("/api/v1/", http.StripPrefix("/api/v1", server.ApiV1Mux))
-
-	rootMux.HandleFunc("/api/v1/info", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Hello 01"))
-	})
-
-	lambdaToHttp = httpadapter.NewV2(rootMux)
+	srv := server.NewServer("")
+	lambdaToHttp = httpadapter.NewV2(srv.RootHandler())
 	lambda.Start(Handler)
 	slog.Info("Lambda finished")
 }
