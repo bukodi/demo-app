@@ -2,8 +2,6 @@ package authn
 
 import (
 	"context"
-	"fmt"
-	"log/slog"
 )
 
 type User interface {
@@ -33,13 +31,14 @@ func GetUser(ctx context.Context) User {
 	return authCtxData.user
 }
 
-func SetUser(ctx context.Context, user User) {
-	authCtxData := getAuthData(ctx)
-	if authCtxData == nil {
-		slog.Error(fmt.Sprintf("authn.SetUser: setter not found in context"))
-		return
+func WithUser(ctx context.Context, user User) context.Context {
+	retCtx := ctx
+	authCtxData, ok := retCtx.Value(contextKeyAuthData).(*authData)
+	if !ok || authCtxData == nil {
+		authCtxData = &authData{}
+		retCtx = context.WithValue(retCtx, contextKeyAuthData, authCtxData)
 	}
 	authCtxData.user = user
 	authCtxData.changed = true
-	return
+	return retCtx
 }
