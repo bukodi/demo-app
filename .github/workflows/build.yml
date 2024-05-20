@@ -59,6 +59,9 @@ jobs:
           go test ./... -coverprofile /tmp/build-results/cover.out -json | tee /tmp/build-results/test-report.json
           go tool cover -html=/tmp/build-results/cover.out -o /tmp/build-results/cover.html
           gopogh -in /tmp/build-results/test-report.json -out_html /tmp/build-results/test-report.html -out_summary /tmp/build-results/test-summary.json
+          if [ failure() ]; then
+            go test ./... 
+          fi
 
       - name: Save test results
         if: success() || failure()
