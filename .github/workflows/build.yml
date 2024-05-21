@@ -56,7 +56,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: "eu-central-1"
         run: |
-          go test ./... 
           go test ./... -coverprofile /tmp/build-results/cover.out -json | tee /tmp/build-results/test-report.json
           go tool cover -html=/tmp/build-results/cover.out -o /tmp/build-results/cover.html
           gopogh -in /tmp/build-results/test-report.json -out_html /tmp/build-results/test-report.html -out_summary /tmp/build-results/test-summary.json
@@ -102,7 +101,9 @@ jobs:
             aws-region: eu-central-1
 
       - name: Update AWS lambda function code
-        run: aws lambda update-function-code  --function-name=demo-app-apiv1 --zip-file=fileb://demo-aws-lambda.zip
+        run: |
+          aws lambda update-function-code  --function-name=demo-app-apiv1 --zip-file=fileb://demo-aws-lambda.zip
+          aws lambda get-function-url-config --function-name demo-app-apiv1 | jq ".FunctionUrl"
         working-directory: ./cmd/demo-aws-lambda
 
       - name: Create AWS lambda artifact
