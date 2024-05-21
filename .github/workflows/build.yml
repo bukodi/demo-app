@@ -35,6 +35,7 @@ jobs:
           tar -xzf gsa.tar.gz gsa
           chmod +x gsa
           go install github.com/medyagh/gopogh/cmd/gopogh@latest
+          go install github.com/nikolaydubina/go-cover-treemap@latest
         working-directory: /tmp
           
 
@@ -57,14 +58,13 @@ jobs:
           AWS_REGION: "eu-central-1"
         run: |
           go test ./... -coverprofile /tmp/build-results/cover.out -json | tee /tmp/build-results/test-report.json
-          go tool cover -html=/tmp/build-results/cover.out -o /tmp/build-results/cover.html
-          gopogh -in /tmp/build-results/test-report.json -out_html /tmp/build-results/test-report.html -out_summary /tmp/build-results/test-summary.json
 
       - name: Save test results
         if: success() || failure()
         run: |
           go tool cover -html=/tmp/build-results/cover.out -o /tmp/build-results/cover.html
           gopogh -in /tmp/build-results/test-report.json -out_html /tmp/build-results/test-report.html -out_summary /tmp/build-results/test-summary.json
+          go-cover-treemap -h 1080 -w 1980 -coverprofile=/tmp/build-results/cover.out > /tmp/build-results/cover-treemap.svg
 
       - name: Build demo command
         run: |
