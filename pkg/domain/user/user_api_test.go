@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/bukodi/demo-app/pkg/server"
 	"io"
+	"log/slog"
 	"math/rand/v2"
 	"net/http"
 	"os"
@@ -29,6 +30,8 @@ func TestUserStoreTiDBGORM(t *testing.T) {
 }
 
 func TestUserStoreSqliteGORM(t *testing.T) {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
+
 	os.Unsetenv("DYNAMODB_TABLE_PREFIX")
 	os.Unsetenv("TIDB_PASSWORD")
 	os.Setenv("SQLITE_DSN", "file::memory:?cache=shared")
