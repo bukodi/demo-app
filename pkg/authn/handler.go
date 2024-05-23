@@ -9,7 +9,7 @@ import (
 
 func CookieMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authnCtx := context.WithValue(r.Context(), contextKeyAuthData, &authData{})
+		authnCtx := context.WithValue(r.Context(), contextKeyAuthData, &authnData{})
 		r2 := r.WithContext(authnCtx)
 		w2 := newResponseWrapper(r2.Context(), w)
 		next.ServeHTTP(w2, r2)

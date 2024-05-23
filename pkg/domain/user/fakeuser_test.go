@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"github.com/bukodi/demo-app/pkg/authn"
+	"slices"
 )
 
 type fakeUser struct {
@@ -10,12 +11,7 @@ type fakeUser struct {
 }
 
 func (u *fakeUser) HasRole(role string) bool {
-	for _, r := range u.roles {
-		if r == role {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(u.roles, role)
 }
 
 func adminUserContext() context.Context {

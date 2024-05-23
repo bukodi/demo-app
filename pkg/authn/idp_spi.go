@@ -6,7 +6,9 @@ import (
 )
 
 type IdentityProvider interface {
+	Name() string
 	FindAndAuthorize(ctx context.Context, userid string, password string) (User, error)
+	FindById(ctx context.Context, userid string) User
 }
 
 var plugins = make(map[string]IdentityProvider)

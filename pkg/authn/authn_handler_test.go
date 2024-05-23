@@ -1,0 +1,116 @@
+package authn
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/bukodi/demo-app/pkg/server"
+	"io"
+	"log"
+	"net/http"
+	"net/http/cookiejar"
+	"testing"
+)
+
+func TestSetUser(t *testing.T) {
+	t.Log("TestSetUser")
+
+	tIDP := &testIDP{
+		users: []testUser{
+			{
+				userid:   "alice",
+				password: "pswAlice",
+			},
+			{
+				userid:   "bob",
+				password: "pswBob",
+			},
+			{
+				userid:   "admin",
+				password: "adminPsw",
+				roles:    []string{"admin"},
+			},
+		},
+	}
+	RegisterIdentityProvider("test_idp", tIDP)
+
+	server.RegisterPlugin("authn_test", func(srv *server.ServerInit) error {
+		srv.AddApiHandler("POST /login", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var params map[string]string
+			err := json.NewDecoder(r.Body).Decode(&params)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			tU, err := tIDP.FindAndAuthorize(r.Context(), params["userid"], params["password"])
+			if err != nil || tU == nil {
+				http.Error(w, err.Error(), http.StatusNotAcceptable)
+				return
+			}
+
+			SetUser(r.Context(), tU)
+		}))
+		srv.AddApiHandler("GET /userid", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			u := GetUser(r.Context())
+			if u == nil {
+				http.Error(w, "no user", http.StatusNotFound)
+				return
+			}
+			w.Write([]byte(u.Id()))
+		}))
+		srv.AddApiHandler("POST /logout", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			SetUser(r.Context(), nil)
+		}))
+		return nil
+	})
+
+	srv := server.NewServer(":0")
+	if err := srv.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := srv.Stop(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	// Create a cookie jar
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create an http.Client with the cookie jar
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	jsonData := []byte(`{"userid":"alice","password":"pswAlice"}`)
+	resp, err := client.Post("http://"+srv.Addr()+"/api/v1/login", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if err != nil {
+		t.Errorf("The HTTP request failed with error %+v", err)
+	} else {
+		data, _ := io.ReadAll(resp.Body)
+		t.Logf("POST /login success: %s", data)
+	}
+
+	resp, err = client.Get("http://" + srv.Addr() + "/api/v1/userid")
+	if err != nil {
+		t.Errorf("The HTTP request failed with error %+v", err)
+	} else {
+		data, _ := io.ReadAll(resp.Body)
+		got := string(data)
+		want := "alice"
+		if got != want {
+			t.Errorf("Expected: %s, but actual: %s", want, got)
+		}
+	}
+
+}
