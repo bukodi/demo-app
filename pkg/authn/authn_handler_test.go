@@ -7,12 +7,14 @@ import (
 	"github.com/bukodi/demo-app/pkg/server"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"testing"
 )
 
 func TestSetUser(t *testing.T) {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 	t.Log("TestSetUser")
 
 	tIDP := &testIDP{

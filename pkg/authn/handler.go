@@ -23,6 +23,8 @@ func handleAuthorize(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	var idpName string
+	var user User
 	for name, idp := range plugins {
 		u, err := idp.FindAndAuthorize(r.Context(), params["userid"], params["password"])
 		if err != nil {
@@ -32,9 +34,20 @@ func handleAuthorize(w http.ResponseWriter, r *http.Request) {
 		if u == nil {
 			continue
 		}
-
-		slog.Debug("User authenticated with password", "user", u, "idp", name)
+		if user != nil {
+			http.Error(w, "multiple users found", http.StatusInternalServerError)
+			return
+		}
+		user = u
+		idpName = name
 		break
+	}
+	if user == nil {
+		http.Error(w, "user not found", http.StatusNotFound)
+		return
+	} else {
+		SetUser(r.Context(), user)
+		slog.Info("User authenticated", "idp", idpName, "userid", user.Id())
 	}
 
 	w.WriteHeader(http.StatusCreated)

@@ -50,16 +50,18 @@ func (srv *Server) initPlugins() (retErr error) {
 
 func (srvInit *ServerInit) AddRootHandler(pattern string, handler http.Handler) {
 	srvInit.srv.rootMux.Handle(pattern, handler)
+	slog.Debug("Root handler added", "pattern", pattern)
 }
 
 func (srvInit *ServerInit) AddApiHandler(pattern string, handler http.Handler) {
 	srvInit.srv.apiMux.Handle(pattern, handler)
+	slog.Debug("Api handler added", "pattern", pattern)
 }
 
-type MiddlewareHandler func(http.Handler) http.Handler
+type MiddlewareFactory func(http.Handler) http.Handler
 
-func (srvInit *ServerInit) AddMiddleware(mwHandler MiddlewareHandler) {
-	srvInit.srv.httpSrv.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mwHandler(srvInit.srv.rootMux).ServeHTTP(w, r)
-	})
+func (srvInit *ServerInit) AddMiddleware(mwFactory MiddlewareFactory) {
+	mwHandler := mwFactory(srvInit.srv.httpSrv.Handler)
+	srvInit.srv.httpSrv.Handler = mwHandler
+	slog.Debug("Middleware init", "middleware", fmt.Sprintf("%T", mwHandler))
 }
