@@ -3,7 +3,10 @@ package user
 import (
 	"context"
 	"github.com/bukodi/demo-app/pkg/authn"
+	"log/slog"
 )
+
+const builtinIDPName = "built-in"
 
 func init() {
 	authn.RegisterIdentityProvider("user", &authnIDP{})
@@ -12,8 +15,33 @@ func init() {
 type authnIDP struct {
 }
 
+func (a authnIDP) Name() string {
+	return builtinIDPName
+}
+
+func (a authnIDP) FindById(ctx context.Context, userid string) authn.User {
+	domainUser, err := ByEmail(ctx, userid)
+	if err != nil {
+		slog.Error("failed to find user by id", "userid", userid, "error", err)
+		return nil
+	}
+	if domainUser == nil {
+		return nil
+	}
+
+	return &authnUser{domainUser: domainUser}
+}
+
 type authnUser struct {
 	domainUser *User
+}
+
+func (a authnUser) Id() string {
+	return a.domainUser.Email
+}
+
+func (a authnUser) IDPName() string {
+	return builtinIDPName
 }
 
 func (a authnUser) HasRole(role string) bool {

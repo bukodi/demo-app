@@ -34,6 +34,7 @@ func SetUser(ctx context.Context, user User) error {
 		return fmt.Errorf("context does not have authentication data (ctx: %v)", ctx)
 	}
 	authCtxData.user = user
+	authCtxData.changed = true
 	return nil
 }
 

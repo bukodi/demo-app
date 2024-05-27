@@ -1,4 +1,4 @@
-package authn
+package server
 
 import (
 	"context"
@@ -9,23 +9,25 @@ import (
 
 type responseWrapper struct {
 	http.ResponseWriter
-	requestCtx    context.Context
-	statusCode    int
-	headerWritten bool
+	requestCtx           context.Context
+	statusCode           int
+	headerWritten        bool
+	beforeHeaderComplete func(requestCtx context.Context, w http.ResponseWriter)
 }
 
-func newResponseWrapper(ctx context.Context, w http.ResponseWriter) *responseWrapper {
+func NewResponseWrapper(ctx context.Context, w http.ResponseWriter, beforeHeaderComplete func(requestCtx context.Context, w http.ResponseWriter)) http.ResponseWriter {
 	return &responseWrapper{
-		ResponseWriter: w,
-		statusCode:     http.StatusOK,
-		requestCtx:     ctx,
+		ResponseWriter:       w,
+		statusCode:           http.StatusOK,
+		requestCtx:           ctx,
+		beforeHeaderComplete: beforeHeaderComplete,
 	}
 }
 
 func (mw *responseWrapper) WriteHeader(statusCode int) {
 
 	if !mw.headerWritten {
-		mw.checkUserToken()
+		mw.beforeHeaderComplete(mw.requestCtx, mw.ResponseWriter)
 		mw.statusCode = statusCode
 		mw.headerWritten = true
 	}
@@ -34,7 +36,7 @@ func (mw *responseWrapper) WriteHeader(statusCode int) {
 
 func (mw *responseWrapper) Write(b []byte) (int, error) {
 	if !mw.headerWritten {
-		mw.checkUserToken()
+		mw.beforeHeaderComplete(mw.requestCtx, mw.ResponseWriter)
 		mw.headerWritten = true
 	}
 	return mw.ResponseWriter.Write(b)
@@ -42,14 +44,4 @@ func (mw *responseWrapper) Write(b []byte) (int, error) {
 
 func (mw *responseWrapper) Unwrap() http.ResponseWriter {
 	return mw.ResponseWriter
-}
-
-func (mw *responseWrapper) checkUserToken() {
-	authnData := getAuthData(mw.requestCtx)
-	if authnData == nil {
-		return
-	}
-	if authnData.changed {
-		mw.ResponseWriter.Header().Set("X-User-Token", "true")
-	}
 }

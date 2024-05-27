@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 	"testing"
 )
 
@@ -52,6 +53,7 @@ func TestSetUser(t *testing.T) {
 			}
 
 			SetUser(r.Context(), tU)
+			w.WriteHeader(http.StatusOK)
 		}))
 		srv.AddApiHandler("GET /userid", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			u := GetUser(r.Context())
@@ -63,6 +65,7 @@ func TestSetUser(t *testing.T) {
 		}))
 		srv.AddApiHandler("POST /logout", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			SetUser(r.Context(), nil)
+			w.WriteHeader(http.StatusOK)
 		}))
 		return nil
 	})
@@ -91,16 +94,17 @@ func TestSetUser(t *testing.T) {
 	jsonData := []byte(`{"userid":"alice","password":"pswAlice"}`)
 	resp, err := client.Post("http://"+srv.Addr()+"/api/v1/login", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("%+v", err)
 		return
-	}
-	defer resp.Body.Close()
-
-	if err != nil {
-		t.Errorf("The HTTP request failed with error %+v", err)
 	} else {
 		data, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		t.Logf("POST /login success: %s", data)
+		baseUrl, _ := url.Parse("http://" + srv.Addr() + "/")
+		for _, cookie := range jar.Cookies(baseUrl) {
+			fmt.Printf("  %s: %s\n", cookieName, cookie.Value)
+		}
+
 	}
 
 	resp, err = client.Get("http://" + srv.Addr() + "/api/v1/userid")

@@ -3,17 +3,74 @@ package authn
 import (
 	"context"
 	"encoding/json"
+	"github.com/bukodi/demo-app/pkg/server"
 	"log/slog"
 	"net/http"
+	"slices"
 )
+
+const cookieName = "X-User-Token"
 
 func CookieMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authnCtx := context.WithValue(r.Context(), contextKeyAuthData, &authnData{})
+		user, err := convertCookieToUser(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		authnCtx := WithUser(r.Context(), user)
 		r2 := r.WithContext(authnCtx)
-		w2 := newResponseWrapper(r2.Context(), w)
+
+		w2 := server.NewResponseWrapper(r2.Context(), w, convertCtxUserToCookie)
 		next.ServeHTTP(w2, r2)
 	})
+}
+
+type userFromJWT struct {
+	id      string
+	idpName string
+	roles   []string
+}
+
+func (u userFromJWT) HasRole(role string) bool {
+	return slices.Contains(u.roles, role)
+}
+
+func (u userFromJWT) Id() string {
+	return u.id
+}
+
+func (u userFromJWT) IDPName() string {
+	return u.idpName
+}
+
+var _ User = (*userFromJWT)(nil)
+
+func convertCookieToUser(r *http.Request) (User, error) {
+	cookie, err := r.Cookie(cookieName)
+	if err != nil || cookie.Value == "" {
+		return nil, nil
+	}
+
+	var user userFromJWT = userFromJWT{
+		id: cookie.Value,
+	}
+	return &user, nil
+
+}
+
+func convertCtxUserToCookie(requestCtx context.Context, w http.ResponseWriter) {
+	authnData := getAuthData(requestCtx)
+	if authnData == nil || authnData.user == nil {
+		//w.Header().CHeader().Set(cookieName, "")
+	} else if authnData.changed {
+		http.SetCookie(w, &http.Cookie{
+			Name:   cookieName,
+			Value:  authnData.user.Id(),
+			Secure: false,
+		})
+	}
 }
 
 func handleAuthorize(w http.ResponseWriter, r *http.Request) {

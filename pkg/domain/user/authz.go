@@ -1,7 +1,6 @@
 package user
 
 import (
-	"github.com/bukodi/demo-app/pkg/authn"
 	"github.com/bukodi/demo-app/pkg/authz"
 )
 
@@ -11,8 +10,6 @@ func (authzType) TypeName() string {
 }
 
 var AuthzType authz.Type = authzType{}
-
-var _ authn.User = (*User)(nil)
 
 func (u *User) HasRole(role string) bool {
 	return u.Role == role

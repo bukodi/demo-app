@@ -10,6 +10,14 @@ type fakeUser struct {
 	roles []string
 }
 
+func (u *fakeUser) Id() string {
+	return "fakeUser"
+}
+
+func (u *fakeUser) IDPName() string {
+	return "fakeIDP"
+}
+
 func (u *fakeUser) HasRole(role string) bool {
 	return slices.Contains(u.roles, role)
 }

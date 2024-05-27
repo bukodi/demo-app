@@ -50,3 +50,7 @@ func List(ctx context.Context) ([]*User, error) {
 	}
 	return store().List(ctx)
 }
+
+func ByEmail(ctx context.Context, email string) (*User, error) {
+	return store().ByEmail(ctx, email)
+}
