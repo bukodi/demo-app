@@ -1,6 +1,7 @@
 package demo_app
 
 import (
+	_ "github.com/pkg/errors"
 	"runtime/debug"
 )
 
