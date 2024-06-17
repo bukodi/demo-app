@@ -54,7 +54,7 @@ func TestServer(t *testing.T) {
 	t.Logf("App server started on http://%s", appHttpSrv.Addr)
 	defer appHttpSrv.Shutdown(context.Background())
 
-	time.Sleep(time.Second * 300)
+	//time.Sleep(time.Second * 300)
 
 }
 
