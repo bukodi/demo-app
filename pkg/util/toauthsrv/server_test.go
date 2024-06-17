@@ -10,7 +10,6 @@ import (
 	"github.com/go-oauth2/oauth2/v4/server"
 	"golang.org/x/oauth2/clientcredentials"
 	"io"
-	"net"
 	"net/http"
 	"testing"
 	"time"
@@ -47,28 +46,21 @@ func TestServer(t *testing.T) {
 	}
 	defer tsrv.Stop()
 
-	t.Logf("OAuth2 test server started: %s", tsrv.listener.Addr().String())
-
 	// Create oauthClient srv
-	appRootMux := http.NewServeMux()
-	addAppHandlers(appRootMux)
-	appHttpSrv := &http.Server{
-		Addr:    "localhost:9094",
-		Handler: appRootMux,
-	}
-	if l, err := net.Listen("tcp", appHttpSrv.Addr); err != nil {
-		t.Fatal(err)
-	} else {
-		go appHttpSrv.Serve(l)
-		t.Logf("App server started on http://%s", l.Addr())
-	}
+	//addAppHandlers(appRootMux)
+	appHttpSrv := newAppServer("localhost:9094")
+
+	go appHttpSrv.ListenAndServe()
+	t.Logf("App server started on http://%s", appHttpSrv.Addr)
 	defer appHttpSrv.Shutdown(context.Background())
 
-	//time.Sleep(time.Second * 300)
+	time.Sleep(time.Second * 300)
 
 }
 
-func addAppHandlers(appRootMux *http.ServeMux) {
+func newAppServer(addr string) *http.Server {
+	appRootMux := http.NewServeMux()
+
 	appRootMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		u := config.AuthCodeURL("xyz",
 			oauth2.SetAuthURLParam("code_challenge", genCodeChallengeS256("s256example")),
@@ -165,6 +157,11 @@ func addAppHandlers(appRootMux *http.ServeMux) {
 		e.SetIndent("", "  ")
 		e.Encode(token)
 	})
+
+	return &http.Server{
+		Addr:    addr,
+		Handler: appRootMux,
+	}
 }
 
 func genCodeChallengeS256(s string) string {

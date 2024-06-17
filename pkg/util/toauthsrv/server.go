@@ -6,7 +6,6 @@ import (
 	"github.com/go-oauth2/oauth2/v4/generates"
 	"io"
 	"log/slog"
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"time"
@@ -32,7 +31,6 @@ var (
 )
 
 type OAuthTestServer struct {
-	listener net.Listener
 	httpSrv  *http.Server
 	rootMux  *http.ServeMux
 	manager  *manage.Manager
@@ -91,15 +89,10 @@ func StartOauthTestServer(srvAddr string, srvCfg *server.Config, clientCfg *mode
 
 	tsrv.rootMux.HandleFunc("/test", tsrv.testHandler)
 
-	l, err := net.Listen("tcp", tsrv.httpSrv.Addr)
-	if err != nil {
-		return nil, err
-	}
-	tsrv.listener = l
-	go tsrv.httpSrv.Serve(l)
-	slog.Info(fmt.Sprintf("Server started on http://%s", tsrv.listener.Addr()))
-	slog.Info(fmt.Sprintf("Point your OAuth client Auth endpoint to https://%s/oauth/authorize", l.Addr().String()))
-	slog.Info(fmt.Sprintf("Point your OAuth client Token endpoint to https://%s/oauth/token", l.Addr().String()))
+	go tsrv.httpSrv.ListenAndServe()
+	slog.Info(fmt.Sprintf("Server started on http://%s", tsrv.httpSrv.Addr))
+	slog.Info(fmt.Sprintf("Point your OAuth client Auth endpoint to https://%s/oauth/authorize", tsrv.httpSrv.Addr))
+	slog.Info(fmt.Sprintf("Point your OAuth client Token endpoint to https://%s/oauth/token", tsrv.httpSrv.Addr))
 
 	return tsrv, nil
 }
