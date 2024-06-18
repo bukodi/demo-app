@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 	"io"
 	"net/http"
 	"testing"
 	"time"
-
-	"golang.org/x/oauth2"
 )
 
 var (
@@ -34,8 +33,9 @@ var (
 )
 
 func TestServer(t *testing.T) {
+	srvConfig := server.NewConfig()
 	tsrv, err := StartOauthTestServer("localhost:9096",
-		&server.Config{},
+		srvConfig,
 		&models.Client{
 			ID:     config.ClientID,
 			Secret: config.ClientSecret,
@@ -54,7 +54,7 @@ func TestServer(t *testing.T) {
 	t.Logf("App server started on http://%s", appHttpSrv.Addr)
 	defer appHttpSrv.Shutdown(context.Background())
 
-	//time.Sleep(time.Second * 300)
+	time.Sleep(time.Second * 300)
 
 }
 
