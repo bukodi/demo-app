@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
 	_ "github.com/bukodi/demo-app/pkg/domain/user"
 	"github.com/bukodi/demo-app/pkg/server"
 	"github.com/kr/pretty"
+	"io"
 	"log/slog"
 	"os"
 	"time"
@@ -26,6 +30,12 @@ func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 
 func main() {
 	slog.Info("Starting Lambda")
+
+	if env, err := loadEnvFromS3(); err != nil {
+		slog.Error("Error loading env from S3", "err", err)
+	} else {
+		slog.Info(fmt.Sprintf("env from S3: %s", string(env)))
+	}
 
 	now := time.Now()
 	_, err := x509.SystemCertPool()
@@ -45,4 +55,34 @@ func main() {
 	lambdaToHttp = httpadapter.NewV2(srv.RootHandler())
 	lambda.Start(Handler)
 	slog.Info("Lambda finished")
+}
+
+func loadEnvFromS3() ([]byte, error) {
+	now := time.Now()
+	defer func() {
+		slog.Info(fmt.Sprintf("loadEnvFromS3 took: %s", time.Since(now)))
+	}()
+	cfg, err := config.LoadDefaultConfig(context.TODO(), func(opts *config.LoadOptions) error {
+		opts.Region = "eu-central-1"
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	svc := s3.NewFromConfig(cfg)
+
+	obj, err := svc.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket: aws.String("demo-app-20240702"),
+		Key:    aws.String("conf/env.txt"),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(obj.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }

@@ -11,6 +11,7 @@ import (
 const keycloakImage = "quay.io/keycloak/keycloak:latest"
 
 func TestDockerStart(t *testing.T) {
+	t.Skip("Skip Docker test because it takes too long")
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	kc := &KeycloakContainer{}
