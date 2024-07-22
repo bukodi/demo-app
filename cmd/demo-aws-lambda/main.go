@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
 	_ "github.com/bukodi/demo-app/pkg/domain/user"
@@ -35,6 +37,12 @@ func main() {
 		slog.Error("Error loading env from S3", "err", err)
 	} else {
 		slog.Info(fmt.Sprintf("env from S3: %s", string(env)))
+	}
+
+	if env, err := loadEnvFromDynDb(context.TODO()); err != nil {
+		slog.Error("Error loading env from DynDb", "err", err)
+	} else {
+		slog.Info(fmt.Sprintf("env from DynDb: %v", env))
 	}
 
 	now := time.Now()
@@ -85,4 +93,50 @@ func loadEnvFromS3() ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+func loadEnvFromDynDb(ctx context.Context) (map[string]string, error) {
+	now := time.Now()
+	defer func() {
+		slog.Info(fmt.Sprintf("loadEnvFromDynDb took: %s", time.Since(now)))
+	}()
+	cfg, err := config.LoadDefaultConfig(ctx, func(opts *config.LoadOptions) error {
+		opts.Region = "eu-central-1"
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	dynDbSvc := dynamodb.NewFromConfig(cfg)
+
+	// Perform the Scan operation
+	scanResponse, err := dynDbSvc.Scan(ctx, &dynamodb.ScanInput{
+		TableName: aws.String("demoapp-config"),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize an empty slice to hold the users
+	type cfgEntry struct {
+		Key   string
+		Value string
+	}
+
+	var cfgValues map[string]string
+
+	// Iterate over the items in the scan response
+	for _, item := range scanResponse.Items {
+		e := &cfgEntry{}
+
+		// Unmarshal the item into the User
+		err := attributevalue.UnmarshalMap(item, e)
+		if err != nil {
+			return nil, err
+		}
+
+		cfgValues[e.Key] = e.Value
+	}
+
+	return cfgValues, nil
 }
