@@ -36,6 +36,7 @@ jobs:
           chmod +x gsa
           go install github.com/medyagh/gopogh/cmd/gopogh@latest
           go install github.com/nikolaydubina/go-cover-treemap@latest
+          go install github.com/mfridman/tparse@latest
         working-directory: /tmp
           
 
@@ -57,7 +58,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: "eu-central-1"
         run: |
-          go test ./... -coverprofile /tmp/build-results/cover.out -json | tee /tmp/build-results/test-report.json
+          go test ./... -coverprofile /tmp/build-results/cover.out -json > /tmp/build-results/test-report.json
+          tparse -all -file=/tmp/build-results/test-report.json
 
       - name: Save test results
         if: success() || failure()
