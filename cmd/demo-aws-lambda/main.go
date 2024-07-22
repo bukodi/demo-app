@@ -123,7 +123,7 @@ func loadEnvFromDynDb(ctx context.Context) (map[string]string, error) {
 		Value string
 	}
 
-	var cfgValues map[string]string
+	var cfgValues = make(map[string]string)
 
 	// Iterate over the items in the scan response
 	for _, item := range scanResponse.Items {
