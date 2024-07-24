@@ -20,15 +20,9 @@ import (
 var (
 	// Dump requests and responses
 	dumpvar bool = true
-	// The client id being passed in
-	idvar string = "222222"
-	// The client secret being passed in
-	secretvar string = "22222222"
-	// The domain of the redirect url
-	domainvar string = "http://localhost:9094"
-	// the base port for the server
-	portvar int = 9094
 )
+
+var pkgLogger = slog.Default().With("pkg", "toauthsrv")
 
 type OAuthTestServer struct {
 	httpSrv  *http.Server
@@ -108,6 +102,10 @@ func (tsrv *OAuthTestServer) Stop() error {
 }
 
 func dumpRequest(writer io.Writer, header string, r *http.Request) error {
+	if pkgLogger.Enabled(r.Context(), slog.LevelDebug) {
+		pkgLogger.Debug("dumpRequest", "header", header, "request", r)
+		return nil
+	}
 	data, err := httputil.DumpRequest(r, true)
 	if err != nil {
 		return err

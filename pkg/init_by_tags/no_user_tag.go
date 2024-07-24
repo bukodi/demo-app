@@ -3,3 +3,4 @@
 package init_by_tags
 
 import _ "github.com/bukodi/demo-app/pkg/domain/user"
+import _ "github.com/bukodi/demo-app/pkg/webui"
