@@ -19,6 +19,8 @@ import (
 	"log/slog"
 	"os"
 	"time"
+
+	_ "github.com/bukodi/demo-app/pkg/init_by_tags"
 )
 
 var lambdaToHttp *httpadapter.HandlerAdapterV2
