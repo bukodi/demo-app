@@ -92,7 +92,7 @@ func TestSetUser(t *testing.T) {
 	}
 
 	jsonData := []byte(`{"userid":"alice","password":"pswAlice"}`)
-	resp, err := client.Post("http://"+srv.Addr()+"/api/v1/login", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := client.Post("http://"+srv.TCPAddr()+"/api/v1/login", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		t.Errorf("%+v", err)
 		return
@@ -100,14 +100,14 @@ func TestSetUser(t *testing.T) {
 		data, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		t.Logf("POST /login success: %s", data)
-		baseUrl, _ := url.Parse("http://" + srv.Addr() + "/")
+		baseUrl, _ := url.Parse("http://" + srv.TCPAddr() + "/")
 		for _, cookie := range jar.Cookies(baseUrl) {
 			fmt.Printf("  %s: %s\n", cookieName, cookie.Value)
 		}
 
 	}
 
-	resp, err = client.Get("http://" + srv.Addr() + "/api/v1/userid")
+	resp, err = client.Get("http://" + srv.TCPAddr() + "/api/v1/userid")
 	if err != nil {
 		t.Errorf("The HTTP request failed with error %+v", err)
 	} else {

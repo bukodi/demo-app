@@ -37,8 +37,7 @@ func NewServer(address string) *Server {
 
 func (srv *Server) Start() error {
 	if srv.httpSrv.Addr == "" {
-		slog.Debug("Server address not set")
-		return nil
+		return fmt.Errorf("http address not set")
 	}
 	l, err := net.Listen("tcp", srv.httpSrv.Addr)
 	if err != nil {
@@ -50,7 +49,7 @@ func (srv *Server) Start() error {
 	return nil
 }
 
-func (srv *Server) Addr() string {
+func (srv *Server) TCPAddr() string {
 	if srv.listener == nil {
 		return ""
 	}

@@ -7,27 +7,22 @@ import (
 	"github.com/go-session/session"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
 )
 
 const sessKeyLoggedInUserID = "LoggedInUserID"
 
-func (tsrv *OAuthTestServer) tokenHandler(w http.ResponseWriter, r *http.Request) {
-	if dumpvar {
-		_ = dumpRequest(os.Stdout, "token", r) // Ignore the error
-	}
+func (idpSrv *TestIDPServer) tokenHandler(w http.ResponseWriter, r *http.Request) {
+	idpSrv.dumpRequest("token", r)
 
-	err := tsrv.oauthSrv.HandleTokenRequest(w, r)
+	err := idpSrv.oauthSrv.HandleTokenRequest(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (tsrv *OAuthTestServer) authzHandler(w http.ResponseWriter, r *http.Request) {
-	if dumpvar {
-		dumpRequest(os.Stdout, "authorize", r)
-	}
+func (idpSrv *TestIDPServer) authzHandler(w http.ResponseWriter, r *http.Request) {
+	idpSrv.dumpRequest("authorize", r)
 
 	sessData, err := session.Start(r.Context(), w, r)
 	if err != nil {
@@ -44,17 +39,15 @@ func (tsrv *OAuthTestServer) authzHandler(w http.ResponseWriter, r *http.Request
 	sessData.Delete("ReturnUri")
 	sessData.Save()
 
-	err = tsrv.oauthSrv.HandleAuthorizeRequest(w, r)
+	err = idpSrv.oauthSrv.HandleAuthorizeRequest(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
 
-func (tsrv *OAuthTestServer) testHandler(w http.ResponseWriter, r *http.Request) {
-	if dumpvar {
-		_ = dumpRequest(os.Stdout, "test", r) // Ignore the error
-	}
-	token, err := tsrv.oauthSrv.ValidationBearerToken(r)
+func (idpSrv *TestIDPServer) testHandler(w http.ResponseWriter, r *http.Request) {
+	idpSrv.dumpRequest("test", r)
+	token, err := idpSrv.oauthSrv.ValidationBearerToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -70,10 +63,8 @@ func (tsrv *OAuthTestServer) testHandler(w http.ResponseWriter, r *http.Request)
 	e.Encode(data)
 }
 
-func authnHandler(w http.ResponseWriter, r *http.Request) {
-	if dumpvar {
-		_ = dumpRequest(os.Stdout, "auth", r) // Ignore the error
-	}
+func (idpSrv *TestIDPServer) authnHandler(w http.ResponseWriter, r *http.Request) {
+	idpSrv.dumpRequest("auth", r)
 	sessData, err := session.Start(nil, w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -89,10 +80,9 @@ func authnHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, "authn.html", time.Now(), bytes.NewReader(authHtml))
 }
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	if dumpvar {
-		_ = dumpRequest(os.Stdout, "login", r) // Ignore the error
-	}
+func (idpSrv *TestIDPServer) loginHandler(w http.ResponseWriter, r *http.Request) {
+	idpSrv.dumpRequest("login", r)
+
 	store, err := session.Start(r.Context(), w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -122,10 +112,9 @@ var authHtml []byte
 //go:embed login.html
 var loginHtml []byte
 
-func userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
-	if dumpvar {
-		_ = dumpRequest(os.Stdout, "userAuthorizeHandler", r) // Ignore the error
-	}
+func (idpSrv *TestIDPServer) userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
+	idpSrv.dumpRequest("userAuthorizeHandler", r)
+
 	sessData, err := session.Start(r.Context(), w, r)
 	if err != nil {
 		return

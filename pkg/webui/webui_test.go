@@ -19,7 +19,7 @@ func TestIndexHtml(t *testing.T) {
 		}
 	}()
 
-	resp, err := http.Get("http://" + srv.Addr() + "/index.html")
+	resp, err := http.Get("http://" + srv.TCPAddr() + "/index.html")
 	if err != nil {
 		t.Errorf("The HTTP request failed with error %+v", err)
 	} else if resp.StatusCode != http.StatusOK {

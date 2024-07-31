@@ -22,7 +22,7 @@ func TestServer(t *testing.T) {
 		}
 	}()
 
-	resp, err := http.Get("http://" + srv.Addr() + "/api/v1/version")
+	resp, err := http.Get("http://" + srv.TCPAddr() + "/api/v1/version")
 	if err != nil {
 		t.Errorf("The HTTP request failed with error %+v", err)
 	} else {

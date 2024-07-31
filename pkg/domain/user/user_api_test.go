@@ -61,7 +61,7 @@ func TestUserHandler(t *testing.T) {
 		t.Fatalf("The HTTP request build failed with error %+v", err)
 	}
 
-	resp, err := http.Post("http://"+srv.Addr()+"/api/v1/user", "application/json", bytes.NewReader(body))
+	resp, err := http.Post("http://"+srv.TCPAddr()+"/api/v1/user", "application/json", bytes.NewReader(body))
 	if err != nil {
 		t.Errorf("The HTTP request failed with error %+v", err)
 	} else {
