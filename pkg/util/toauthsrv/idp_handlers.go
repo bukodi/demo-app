@@ -12,7 +12,7 @@ import (
 
 const sessKeyLoggedInUserID = "LoggedInUserID"
 
-func (idpSrv *TestIDPServer) tokenHandler(w http.ResponseWriter, r *http.Request) {
+func (idpSrv *IDPServerMock) tokenHandler(w http.ResponseWriter, r *http.Request) {
 	idpSrv.dumpRequest("token", r)
 
 	err := idpSrv.oauthSrv.HandleTokenRequest(w, r)
@@ -21,7 +21,7 @@ func (idpSrv *TestIDPServer) tokenHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (idpSrv *TestIDPServer) authzHandler(w http.ResponseWriter, r *http.Request) {
+func (idpSrv *IDPServerMock) authzHandler(w http.ResponseWriter, r *http.Request) {
 	idpSrv.dumpRequest("authorize", r)
 
 	sessData, err := session.Start(r.Context(), w, r)
@@ -45,7 +45,7 @@ func (idpSrv *TestIDPServer) authzHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (idpSrv *TestIDPServer) testHandler(w http.ResponseWriter, r *http.Request) {
+func (idpSrv *IDPServerMock) testHandler(w http.ResponseWriter, r *http.Request) {
 	idpSrv.dumpRequest("test", r)
 	token, err := idpSrv.oauthSrv.ValidationBearerToken(r)
 	if err != nil {
@@ -63,7 +63,7 @@ func (idpSrv *TestIDPServer) testHandler(w http.ResponseWriter, r *http.Request)
 	e.Encode(data)
 }
 
-func (idpSrv *TestIDPServer) authnHandler(w http.ResponseWriter, r *http.Request) {
+func (idpSrv *IDPServerMock) authnHandler(w http.ResponseWriter, r *http.Request) {
 	idpSrv.dumpRequest("auth", r)
 	sessData, err := session.Start(nil, w, r)
 	if err != nil {
@@ -80,7 +80,7 @@ func (idpSrv *TestIDPServer) authnHandler(w http.ResponseWriter, r *http.Request
 	http.ServeContent(w, r, "authn.html", time.Now(), bytes.NewReader(authHtml))
 }
 
-func (idpSrv *TestIDPServer) loginHandler(w http.ResponseWriter, r *http.Request) {
+func (idpSrv *IDPServerMock) loginHandler(w http.ResponseWriter, r *http.Request) {
 	idpSrv.dumpRequest("login", r)
 
 	store, err := session.Start(r.Context(), w, r)
@@ -112,7 +112,7 @@ var authHtml []byte
 //go:embed login.html
 var loginHtml []byte
 
-func (idpSrv *TestIDPServer) userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
+func (idpSrv *IDPServerMock) userAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 	idpSrv.dumpRequest("userAuthorizeHandler", r)
 
 	sessData, err := session.Start(r.Context(), w, r)

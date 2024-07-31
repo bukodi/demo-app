@@ -10,7 +10,14 @@ import (
 var ()
 
 func TestOAuthFlow(t *testing.T) {
-	idpSrv := StartTestIDPServer(t, "localhost:0", server.NewConfig())
+	idpSrv := &IDPServerMock{
+		GenericMock: GenericMock{
+			Name:     "IDPSrv",
+			Addr:     "localhost:0",
+			TestingT: t,
+		},
+	}
+	idpSrv.Start(server.NewConfig())
 	defer idpSrv.Stop()
 
 	// Create oauthClient srv
@@ -26,7 +33,14 @@ func TestOAuthFlow(t *testing.T) {
 		},
 	}
 
-	appSrv := StartTestAppServer(t, "localhost:0", &config, authServerURL)
+	appSrv := &AppServerMock{
+		GenericMock: GenericMock{
+			Name:     "AppSrv",
+			Addr:     "localhost:0",
+			TestingT: t,
+		},
+	}
+	appSrv.Start(&config, authServerURL)
 	defer appSrv.Stop()
 
 	idpSrv.SetClientConfig(&models.Client{
