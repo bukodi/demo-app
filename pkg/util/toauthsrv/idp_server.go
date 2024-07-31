@@ -8,8 +8,6 @@ import (
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
-	"net/http"
-	"net/http/httputil"
 )
 
 type IDPServerMock struct {
@@ -57,11 +55,8 @@ func (idpSrv *IDPServerMock) Start(srvCfg *server.Config) {
 
 	idpSrv.rootMux.HandleFunc("/login", idpSrv.loginHandler)
 	idpSrv.rootMux.HandleFunc("/auth", idpSrv.authnHandler)
-
 	idpSrv.rootMux.HandleFunc("/oauth/authorize", idpSrv.authzHandler)
-
 	idpSrv.rootMux.HandleFunc("/oauth/token", idpSrv.tokenHandler)
-
 	idpSrv.rootMux.HandleFunc("/test", idpSrv.testHandler)
 
 	idpSrv.startGeneric()
@@ -72,13 +67,4 @@ func (idpSrv *IDPServerMock) Start(srvCfg *server.Config) {
 
 func (idpSrv *IDPServerMock) SetClientConfig(cliCfg *models.Client) error {
 	return idpSrv.clientCfgStore.Set(cliCfg.ID, cliCfg)
-}
-
-func (idpSrv *IDPServerMock) dumpRequest(header string, r *http.Request) {
-	data, err := httputil.DumpRequest(r, true)
-	if err != nil {
-		idpSrv.TestingT.Errorf("IDP Server Request - %s : dump failed %+v", header, err)
-	} else {
-		idpSrv.Logf("IDP Server Request - %s :\n%s", header, data)
-	}
 }

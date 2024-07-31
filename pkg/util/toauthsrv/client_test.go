@@ -13,7 +13,7 @@ func TestOAuthFlow(t *testing.T) {
 	idpSrv := &IDPServerMock{
 		GenericMock: GenericMock{
 			Name:     "IDPSrv",
-			Addr:     "localhost:0",
+			Addr:     "localhost:9096",
 			TestingT: t,
 		},
 	}
@@ -36,7 +36,7 @@ func TestOAuthFlow(t *testing.T) {
 	appSrv := &AppServerMock{
 		GenericMock: GenericMock{
 			Name:     "AppSrv",
-			Addr:     "localhost:0",
+			Addr:     "localhost:9094",
 			TestingT: t,
 		},
 	}
@@ -49,4 +49,5 @@ func TestOAuthFlow(t *testing.T) {
 		Domain: "http://localhost:9094",
 	})
 
+	// time.Sleep(300 * time.Second)
 }

@@ -39,6 +39,8 @@ func (appSrv *AppServerMock) Start(oauthCfg *oauth2.Config, authServerURL string
 }
 
 func (appSrv *AppServerMock) rootHandler(w http.ResponseWriter, r *http.Request) {
+	appSrv.dumpRequest("root", r)
+
 	u := appSrv.oauthCfg.AuthCodeURL("xyz",
 		oauth2.SetAuthURLParam("code_challenge", genCodeChallengeS256("s256example")),
 		oauth2.SetAuthURLParam("code_challenge_method", "S256"))
@@ -46,6 +48,8 @@ func (appSrv *AppServerMock) rootHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (appSrv *AppServerMock) oauth2Handler(w http.ResponseWriter, r *http.Request) {
+	appSrv.dumpRequest("oauth2", r)
+
 	r.ParseForm()
 	state := r.Form.Get("state")
 	if state != "xyz" {
@@ -70,6 +74,8 @@ func (appSrv *AppServerMock) oauth2Handler(w http.ResponseWriter, r *http.Reques
 }
 
 func (appSrv *AppServerMock) refreshHandler(w http.ResponseWriter, r *http.Request) {
+	appSrv.dumpRequest("refresh", r)
+
 	if appSrv.globalToken == nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -89,6 +95,8 @@ func (appSrv *AppServerMock) refreshHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (appSrv *AppServerMock) tryHandler(w http.ResponseWriter, r *http.Request) {
+	appSrv.dumpRequest("try", r)
+
 	if appSrv.globalToken == nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -105,6 +113,8 @@ func (appSrv *AppServerMock) tryHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (appSrv *AppServerMock) pwdHandler(w http.ResponseWriter, r *http.Request) {
+	appSrv.dumpRequest("pwd", r)
+
 	token, err := appSrv.oauthCfg.PasswordCredentialsToken(context.Background(), "test", "test")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -118,6 +128,8 @@ func (appSrv *AppServerMock) pwdHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (appSrv *AppServerMock) clientHandler(w http.ResponseWriter, r *http.Request) {
+	appSrv.dumpRequest("client", r)
+
 	cfg := clientcredentials.Config{
 		ClientID:     appSrv.oauthCfg.ClientID,
 		ClientSecret: appSrv.oauthCfg.ClientSecret,

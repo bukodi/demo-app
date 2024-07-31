@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"testing"
 	"time"
 )
@@ -63,5 +64,14 @@ func (mockSrv *GenericMock) Stop() {
 		mockSrv.TestingT.Fatalf("["+mockSrv.Name+"] : shutdown failed: %+v", err)
 	} else {
 		mockSrv.Logf("shutdown")
+	}
+}
+
+func (mockSrv *GenericMock) dumpRequest(header string, r *http.Request) {
+	data, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		mockSrv.TestingT.Errorf("["+mockSrv.Name+"] %s : dump failed %+v", header, err)
+	} else {
+		mockSrv.Logf("---- %s request ----\n%s", header, data)
 	}
 }
