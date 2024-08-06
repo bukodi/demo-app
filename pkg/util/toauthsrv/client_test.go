@@ -2,6 +2,7 @@ package toauthsrv
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"golang.org/x/oauth2"
@@ -59,7 +60,7 @@ func TestOAuthFlow(t *testing.T) {
 	client := NewClientMock(t)
 
 	// Login
-	var loginFormPath = "/login"
+	var loginSubmitUrl *url.URL
 	resp, err := client.Post("http://"+appSrv.TCPAddr()+"/",
 		"application/json",
 		bytes.NewBuffer([]byte{}))
@@ -69,34 +70,53 @@ func TestOAuthFlow(t *testing.T) {
 	} else {
 		data, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
-		if !strings.Contains(string(data), loginFormPath) {
-			t.Fatalf("Missing %s", loginFormPath)
+		loginSubmitPath := "/login"
+		if !strings.Contains(string(data), fmt.Sprintf(`<form action="%s" method="POST">`, loginSubmitPath)) {
+			t.Fatalf("Missing %s", loginSubmitPath)
+			return
+		}
+		loginSubmitUrl, err = resp.Request.URL.Parse(loginSubmitPath)
+		if err != nil {
+			t.Fatalf("%+v", err)
 			return
 		}
 	}
-	_, _ = io.ReadAll(resp.Body)
-	resp.Body.Close()
-	loginFormPostUrl, err := resp.Request.URL.Parse(loginFormPath)
-	if err != nil {
-		t.Fatalf("%+v", err)
-		return
-	}
+
+	var authorizeSubmitUrl *url.URL
 	v := url.Values{}
 	v.Add("username", "test")
 	v.Add("password", "test")
-	resp, err = client.PostForm(loginFormPostUrl.String(), v)
-
-	var authorizePath = "/oauth/authorize"
+	resp, err = client.PostForm(loginSubmitUrl.String(), v)
 	if err != nil {
 		t.Fatalf("%+v", err)
 		return
 	} else {
 		data, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
-		if !strings.Contains(string(data), authorizePath) {
-			t.Fatalf("Missing %s", authorizePath)
+		authorizeSubmitPath := "/oauth/authorize"
+		if !strings.Contains(string(data), fmt.Sprintf(`<form action="%s" method="POST">`, authorizeSubmitPath)) {
+			t.Fatalf("Missing %s", authorizeSubmitPath)
 			return
 		}
+		authorizeSubmitUrl, err = resp.Request.URL.Parse(authorizeSubmitPath)
+		if err != nil {
+			t.Fatalf("%+v", err)
+			return
+		}
+	}
+
+	resp, err = client.PostForm(authorizeSubmitUrl.String(), nil)
+	if err != nil {
+		t.Fatalf("%+v", err)
+		return
+	} else {
+		data, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if !strings.Contains(string(data), `"access_token"`) {
+			t.Fatalf("Missing %s", `"access_token"`)
+			return
+		}
+		client.TestingT.Logf("Response: %s", data)
 	}
 
 }

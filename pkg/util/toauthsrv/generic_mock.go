@@ -44,11 +44,7 @@ func (mockSrv *GenericMock) startGeneric() {
 		mockSrv.listener = l
 	}
 	go mockSrv.httpSrv.Serve(mockSrv.listener)
-	mockSrv.Logf("started on http://%s", mockSrv.TCPAddr())
-}
-
-func (mockSrv *GenericMock) Logf(format string, args ...any) {
-	mockSrv.TestingT.Logf("["+mockSrv.Name+"] : "+format, args...)
+	mockSrv.TestingT.Logf("["+mockSrv.Name+"] : started on http://%s", mockSrv.TCPAddr())
 }
 
 func (mockSrv *GenericMock) TCPAddr() string {
@@ -63,7 +59,7 @@ func (mockSrv *GenericMock) Stop() {
 	if err := mockSrv.httpSrv.Shutdown(ctx); err != nil {
 		mockSrv.TestingT.Fatalf("["+mockSrv.Name+"] : shutdown failed: %+v", err)
 	} else {
-		mockSrv.Logf("shutdown")
+		mockSrv.TestingT.Logf("[" + mockSrv.Name + "] : shutdown")
 	}
 }
 
@@ -72,6 +68,6 @@ func (mockSrv *GenericMock) dumpRequest(header string, r *http.Request) {
 	if err != nil {
 		mockSrv.TestingT.Errorf("["+mockSrv.Name+"] %s : dump failed %+v", header, err)
 	} else {
-		mockSrv.Logf("---- %s request ----\n%s", header, data)
+		mockSrv.TestingT.Logf("["+mockSrv.Name+"] : ---- %s request ----\n%s", header, data)
 	}
 }

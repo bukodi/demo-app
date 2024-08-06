@@ -60,7 +60,7 @@ func (idpSrv *IDPServerMock) Start(srvCfg *server.Config) {
 	idpSrv.rootMux.HandleFunc("/test", idpSrv.testHandler)
 
 	idpSrv.startGeneric()
-	idpSrv.Logf(`
+	idpSrv.TestingT.Logf("["+idpSrv.Name+"] :"+`
   Point your OAuth client Auth endpoint to https://%s/oauth/authorize
   Point your OAuth client Token endpoint to https://%s/oauth/token`, idpSrv.TCPAddr(), idpSrv.TCPAddr())
 }
