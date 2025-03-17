@@ -41,9 +41,10 @@ func (appSrv *AppServerMock) Start(oauthCfg *oauth2.Config, authServerURL string
 func (appSrv *AppServerMock) rootHandler(w http.ResponseWriter, r *http.Request) {
 	appSrv.dumpRequest("root", r)
 
-	u := appSrv.oauthCfg.AuthCodeURL("xyz",
-		oauth2.SetAuthURLParam("code_challenge", genCodeChallengeS256("s256example")),
-		oauth2.SetAuthURLParam("code_challenge_method", "S256"))
+	/*u := appSrv.oauthCfg.AuthCodeURL("xyz",
+	oauth2.SetAuthURLParam("code_challenge", genCodeChallengeS256("s256example")),
+	oauth2.SetAuthURLParam("code_challenge_method", "S256"))*/
+	u := appSrv.oauthCfg.AuthCodeURL("xyz")
 	http.Redirect(w, r, u, http.StatusFound)
 }
 
@@ -61,12 +62,47 @@ func (appSrv *AppServerMock) oauth2Handler(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Code not found", http.StatusBadRequest)
 		return
 	}
-	token, err := appSrv.oauthCfg.Exchange(context.Background(), code, oauth2.SetAuthURLParam("code_verifier", "s256example"))
+
+	token, err := appSrv.oauthCfg.Exchange(context.Background(), code /*, oauth2.SetAuthURLParam("code_verifier", "s256example")*/)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	appSrv.globalToken = token
+
+	// Create a new HTTP client using the access token
+	client := appSrv.oauthCfg.Client(context.Background(), token)
+
+	// Make a request to the Google People API to get the user's email
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	if err != nil {
+		fmt.Printf("Unable to get user info: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Unable to read response body: %v\n", err)
+		return
+	}
+
+	// Parse the response body to get the user's email
+	var userInfo struct {
+		ID            string `json:"id,omitempty"`
+		Email         string `json:"email"`
+		VerifiedEmail bool   `json:"verified_email"`
+		PictureURL    string `json:"picture,omitempty"`
+	}
+	if err := json.Unmarshal(body, &userInfo); err != nil {
+		fmt.Printf("Unable to parse user info: %v\n", err)
+		return
+	}
+
+	// Print the user's email
+	fmt.Printf("User's email: %s\n", userInfo.Email)
+	fmt.Printf("Verified: %t\n", userInfo.VerifiedEmail)
 
 	e := json.NewEncoder(w)
 	e.SetIndent("", "  ")

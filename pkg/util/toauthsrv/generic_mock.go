@@ -27,7 +27,7 @@ func (mockSrv *GenericMock) initGeneric() {
 		return
 	}
 	if mockSrv.Addr == "" {
-		mockSrv.TestingT.Fatalf("[" + mockSrv.Name + "] : http address not set")
+		mockSrv.TestingT.Fatalf("[%s] : http address not set", mockSrv.Name)
 		return
 	}
 	mockSrv.rootMux = http.NewServeMux()
@@ -38,7 +38,7 @@ func (mockSrv *GenericMock) initGeneric() {
 
 func (mockSrv *GenericMock) startGeneric() {
 	if l, err := net.Listen("tcp", mockSrv.Addr); err != nil {
-		mockSrv.TestingT.Fatalf("["+mockSrv.Name+"] : %+v", err)
+		mockSrv.TestingT.Fatalf("[%s] : %+v", mockSrv.Name, err)
 		return
 	} else {
 		mockSrv.listener = l
@@ -57,17 +57,17 @@ func (mockSrv *GenericMock) TCPAddr() string {
 func (mockSrv *GenericMock) Stop() {
 	ctx, _ := context.WithTimeoutCause(context.Background(), time.Millisecond*100, context.Canceled)
 	if err := mockSrv.httpSrv.Shutdown(ctx); err != nil {
-		mockSrv.TestingT.Fatalf("["+mockSrv.Name+"] : shutdown failed: %+v", err)
+		mockSrv.TestingT.Fatalf("[%s] : shutdown failed: %+v", mockSrv.Name, err)
 	} else {
-		mockSrv.TestingT.Logf("[" + mockSrv.Name + "] : shutdown")
+		mockSrv.TestingT.Logf("[%s] : shutdown", mockSrv.Name)
 	}
 }
 
 func (mockSrv *GenericMock) dumpRequest(header string, r *http.Request) {
 	data, err := httputil.DumpRequest(r, true)
 	if err != nil {
-		mockSrv.TestingT.Errorf("["+mockSrv.Name+"] %s : dump failed %+v", header, err)
+		mockSrv.TestingT.Errorf("[%s] %s : dump failed %+v", mockSrv.Name, header, err)
 	} else {
-		mockSrv.TestingT.Logf("["+mockSrv.Name+"] : ---- %s request ----\n%s", header, data)
+		mockSrv.TestingT.Logf("[%s] : ---- %s request ----\n%s", mockSrv.Name, header, data)
 	}
 }
