@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-var pkgLogger *slog.Logger = slog.Default().With("pkg", "authn")
+var pkgLogger *slog.Logger = slog.With("pkg", "authn")
 
 func init() {
 	server.RegisterPlugin("authn", func(srv *server.ServerInit) error {
