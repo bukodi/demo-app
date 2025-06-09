@@ -5,12 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types"
+	"github.com/containerd/errdefs"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"io"
@@ -114,7 +114,7 @@ func (kc *KeycloakContainer) Start(ctx context.Context) error {
 	if exists, err := kc.checkImageExists(ctx); err != nil {
 		return fmt.Errorf("image check failed: %w", err)
 	} else if !exists {
-		reader, err := kc.cli.ImagePull(ctx, kc.Image, types.ImagePullOptions{})
+		reader, err := kc.cli.ImagePull(ctx, kc.Image, image.PullOptions{})
 		if err != nil {
 			return fmt.Errorf("image pull failed: %w", err)
 		}
@@ -163,7 +163,7 @@ func (kc *KeycloakContainer) Start(ctx context.Context) error {
 		slog.Error(line, "type", "err")
 		return fmt.Errorf("ERROR: %s", line)
 	})
-	if err.Error() == "" {
+	if err == nil || err.Error() == "" {
 		slog.Info("KeycloakContainer started", "id", kc.id)
 		return nil
 	} else {
@@ -276,7 +276,7 @@ func (kc *KeycloakContainer) checkImageExists(ctx context.Context) (bool, error)
 	filterArgs := filters.NewArgs()
 	filterArgs.Add("reference", kc.Image)
 
-	if images, err := kc.cli.ImageList(ctx, types.ImageListOptions{
+	if images, err := kc.cli.ImageList(ctx, image.ListOptions{
 		Filters: filterArgs,
 	}); err != nil {
 		return false, err
