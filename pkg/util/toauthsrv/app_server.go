@@ -101,6 +101,7 @@ func (appSrv *AppServerMock) oauth2Handler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Print the user's email
+	fmt.Printf("User's ID: %s\n", userInfo.ID)
 	fmt.Printf("User's email: %s\n", userInfo.Email)
 	fmt.Printf("Verified: %t\n", userInfo.VerifiedEmail)
 

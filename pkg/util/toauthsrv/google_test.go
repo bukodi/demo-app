@@ -12,10 +12,8 @@ import (
 	"time"
 )
 
-var ()
-
 func TestGoogleOAuth(t *testing.T) {
-	//t.Skip("Skip TestGoogleOAuth")
+	t.Skip("Skip TestGoogleOAuth")
 	//  Open the https://console.cloud.google.com/auth/clients page select theproject and the demo-app client
 	//  and set these enviroment variables copy the client id and secret
 	DEMO_APP_GOOGLE_CLIENT_ID := os.Getenv("DEMO_APP_GOOGLE_CLIENT_ID")
