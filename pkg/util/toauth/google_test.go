@@ -1,0 +1,196 @@
+package toauth
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/bukodi/demo-app/pkg/util"
+	"net/http/cookiejar"
+
+	//"github.com/bukodi/demo-app/pkg/util/toauthsrv"
+	"golang.org/x/oauth2"
+	"io"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
+	"net/url"
+	"os"
+	"strings"
+	"testing"
+	"time"
+)
+
+var (
+	//  Open the https://console.cloud.google.com/auth/clients page select theproject and the demo-app client
+	//  and set these enviroment variables copy the client id and secret
+	DEMO_APP_GOOGLE_CLIENT_ID     = os.Getenv("DEMO_APP_GOOGLE_CLIENT_ID")
+	DEMO_APP_GOOGLE_CLIENT_SECRET = os.Getenv("DEMO_APP_GOOGLE_CLIENT_SECRET")
+)
+
+func oauth2Handler(t *testing.T, oauthCfg *oauth2.Config) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Logf("[AppSrv] : ---- oauth2 request ----\n%s", util.Must(httputil.DumpRequest(r, true)))
+		r.ParseForm()
+		state := r.Form.Get("state")
+		if state != "xyz" {
+			http.Error(w, "State invalid", http.StatusBadRequest)
+			return
+		}
+		code := r.Form.Get("code")
+		if code == "" {
+			http.Error(w, "Code not found", http.StatusBadRequest)
+			return
+		}
+
+		token, err := oauthCfg.Exchange(context.Background(), code /*, oauth2.SetAuthURLParam("code_verifier", "s256example")*/)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Create a new HTTP client using the access token
+		client := oauthCfg.Client(context.Background(), token)
+
+		// Make a request to the Google People API to get the user's email
+		resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+		if err != nil {
+			fmt.Printf("Unable to get user info: %v\n", err)
+			return
+		} else if resp.StatusCode != http.StatusOK {
+			fmt.Printf("Invalid status code: %d\n", resp.StatusCode)
+			return
+		}
+		defer resp.Body.Close()
+
+		// Read the response body
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Printf("Unable to read response body: %v\n", err)
+			return
+		}
+
+		// Parse the response body to get the user's email
+		var userInfo struct {
+			ID            string `json:"id,omitempty"`
+			Email         string `json:"email"`
+			VerifiedEmail bool   `json:"verified_email"`
+			PictureURL    string `json:"picture,omitempty"`
+		}
+		if err := json.Unmarshal(body, &userInfo); err != nil {
+			fmt.Printf("Unable to parse user info: %v\n", err)
+			return
+		}
+
+		// Print the user's email
+		fmt.Printf("User's ID: %s\n", userInfo.ID)
+		fmt.Printf("User's email: %s\n", userInfo.Email)
+		fmt.Printf("Verified: %t\n", userInfo.VerifiedEmail)
+
+		e := json.NewEncoder(w)
+		e.SetIndent("", "  ")
+		e.Encode(token)
+	})
+}
+
+func TestGoogleOAuth(t *testing.T) {
+	t.Skip("Only manual")
+
+	appSrv := httptest.NewUnstartedServer(http.NewServeMux())
+	appSrv.Listener = util.Must(net.Listen("tcp", "localhost:9094"))
+	appSrv.Start()
+	t.Logf("App Server started on %s", appSrv.URL)
+
+	// Create oauthClient srv
+	oauthCfg := oauth2.Config{
+		ClientID:     DEMO_APP_GOOGLE_CLIENT_ID,
+		ClientSecret: DEMO_APP_GOOGLE_CLIENT_SECRET,
+		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
+		RedirectURL:  appSrv.URL + "/oauth2",
+		Endpoint: oauth2.Endpoint{
+			AuthURL:   "https://accounts.google.com/o/oauth2/v2/auth",
+			TokenURL:  "https://oauth2.googleapis.com/token",
+			AuthStyle: oauth2.AuthStyleInParams,
+		},
+	}
+
+	appSrv.Config.Handler.(*http.ServeMux).HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		/*u := appSrv.oauthCfg.AuthCodeURL("xyz",
+		oauth2.SetAuthURLParam("code_challenge", genCodeChallengeS256("s256example")),
+		oauth2.SetAuthURLParam("code_challenge_method", "S256"))*/
+		u := oauthCfg.AuthCodeURL("xyz")
+		http.Redirect(w, r, u, http.StatusFound)
+	})
+
+	appSrv.Config.Handler.(*http.ServeMux).Handle("/oauth2", oauth2Handler(t, &oauthCfg))
+
+	time.Sleep(300 * time.Second)
+
+	// Create an http.Client with the cookie jar
+	//client := toauthsrv.NewClientMock(t)
+	client := &http.Client{
+		Jar: util.Must(cookiejar.New(nil)),
+	}
+
+	// Login
+	var loginSubmitUrl *url.URL
+	resp, err := client.Post(appSrv.URL,
+		"application/json",
+		bytes.NewBuffer([]byte{}))
+	if err != nil || resp.StatusCode != http.StatusOK {
+		t.Fatalf("%d %+v", resp.StatusCode, err)
+		return
+	} else {
+		data, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		loginSubmitPath := "/login"
+		if !strings.Contains(string(data), fmt.Sprintf(`<form action="%s" method="POST">`, loginSubmitPath)) {
+			t.Fatalf("Missing %s", loginSubmitPath)
+			return
+		}
+		loginSubmitUrl, err = resp.Request.URL.Parse(loginSubmitPath)
+		if err != nil {
+			t.Fatalf("%+v", err)
+			return
+		}
+	}
+
+	var authorizeSubmitUrl *url.URL
+	v := url.Values{}
+	v.Add("username", "test")
+	v.Add("password", "test")
+	resp, err = client.PostForm(loginSubmitUrl.String(), v)
+	if err != nil {
+		t.Fatalf("%+v", err)
+		return
+	} else {
+		data, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		authorizeSubmitPath := "/oauth/authorize"
+		if !strings.Contains(string(data), fmt.Sprintf(`<form action="%s" method="POST">`, authorizeSubmitPath)) {
+			t.Fatalf("Missing %s", authorizeSubmitPath)
+			return
+		}
+		authorizeSubmitUrl, err = resp.Request.URL.Parse(authorizeSubmitPath)
+		if err != nil {
+			t.Fatalf("%+v", err)
+			return
+		}
+	}
+
+	resp, err = client.PostForm(authorizeSubmitUrl.String(), nil)
+	if err != nil {
+		t.Fatalf("%+v", err)
+		return
+	} else {
+		data, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if !strings.Contains(string(data), `"access_token"`) {
+			t.Fatalf("Missing %s", `"access_token"`)
+			return
+		}
+		t.Logf("Response: %s", data)
+	}
+
+}

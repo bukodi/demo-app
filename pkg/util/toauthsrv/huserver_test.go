@@ -1,39 +1,36 @@
 package toauthsrv
 
 import (
+	"github.com/bukodi/demo-app/pkg/util"
 	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
 func TestHttpUtil(t *testing.T) {
 	//t.Skipf("Fix this test to finish")
 	//done := make(chan bool)
-	helloHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	srv := httptest.NewUnstartedServer(http.NewServeMux())
+	srv.Listener, _ = net.Listen("tcp", "localhost:9060")
+	srv.Start()
+	defer srv.Close()
+	t.Logf("Server started on %s", srv.URL)
+
+	srv.Config.Handler.(*http.ServeMux).HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Hello World"))
 		t.Logf("Response sent")
 	})
 
-	srv := httptest.NewUnstartedServer(helloHandler)
-	if listener, err := net.Listen("tcp", "localhost:9060"); err != nil {
-		t.Fatalf("Failed to create listener: %v", err)
-	} else {
-		srv.Listener = listener
-	}
-	srv.Start()
-	defer srv.Close()
-	t.Logf("Server started on %s", srv.URL)
-
-	resp, err := http.Get(srv.URL)
-	if err != nil {
+	resp, err := http.Get(util.Must(url.JoinPath(srv.URL, "hello")))
+	if err != nil || resp == nil || resp.StatusCode != http.StatusOK {
 		t.Fatalf("Failed to get: %v", err)
 	}
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("Expected status 200, got %d", resp.StatusCode)
-	}
+
 	body, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if string(body) != "Hello World" {

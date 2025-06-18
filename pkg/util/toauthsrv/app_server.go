@@ -10,12 +10,19 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 	"io"
+	"net"
 	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
+	"testing"
 	"time"
 )
 
 type AppServerMock struct {
-	GenericMock
+	Addr           string
+	TestingT       *testing.T
+	server         *httptest.Server
+	mux            *http.ServeMux
 	oauthClientCfg *models.Client
 	oauthCfg       *oauth2.Config
 	authServerURL  string
@@ -23,19 +30,33 @@ type AppServerMock struct {
 }
 
 func (appSrv *AppServerMock) Start(oauthCfg *oauth2.Config, authServerURL string) {
-	appSrv.initGeneric()
+	if appSrv.TestingT == nil {
+		panic("TestingT not set")
+	}
 
+	appSrv.mux = http.NewServeMux()
 	appSrv.oauthCfg = oauthCfg
 	appSrv.authServerURL = authServerURL
 
-	appSrv.rootMux.HandleFunc("/", appSrv.rootHandler)
-	appSrv.rootMux.HandleFunc("/oauth2", appSrv.oauth2Handler)
-	appSrv.rootMux.HandleFunc("/refresh", appSrv.refreshHandler)
-	appSrv.rootMux.HandleFunc("/try", appSrv.tryHandler)
-	appSrv.rootMux.HandleFunc("/pwd", appSrv.pwdHandler)
-	appSrv.rootMux.HandleFunc("/client", appSrv.clientHandler)
+	appSrv.mux.HandleFunc("/", appSrv.rootHandler)
+	appSrv.mux.HandleFunc("/oauth2", appSrv.oauth2Handler)
+	appSrv.mux.HandleFunc("/refresh", appSrv.refreshHandler)
+	appSrv.mux.HandleFunc("/try", appSrv.tryHandler)
+	appSrv.mux.HandleFunc("/pwd", appSrv.pwdHandler)
+	appSrv.mux.HandleFunc("/client", appSrv.clientHandler)
 
-	appSrv.startGeneric()
+	appSrv.server = httptest.NewUnstartedServer(appSrv.mux)
+
+	// Set the server to listen on the specified address
+	if listener, err := net.Listen("tcp", appSrv.Addr); err != nil {
+		appSrv.TestingT.Fatalf("[AppSrv] : Failed to create listener: %v", err)
+		return
+	} else {
+		appSrv.server.Listener = listener
+	}
+
+	appSrv.server.Start()
+	appSrv.TestingT.Logf("[AppSrv] : started on http://%s", appSrv.TCPAddr())
 }
 
 func (appSrv *AppServerMock) rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -74,9 +95,12 @@ func (appSrv *AppServerMock) oauth2Handler(w http.ResponseWriter, r *http.Reques
 	client := appSrv.oauthCfg.Client(context.Background(), token)
 
 	// Make a request to the Google People API to get the user's email
-	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	resp, err := client.Get(appSrv.authServerURL + "/test")
 	if err != nil {
 		fmt.Printf("Unable to get user info: %v\n", err)
+		return
+	} else if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Invalid status code: %d\n", resp.StatusCode)
 		return
 	}
 	defer resp.Body.Close()
@@ -88,22 +112,8 @@ func (appSrv *AppServerMock) oauth2Handler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Parse the response body to get the user's email
-	var userInfo struct {
-		ID            string `json:"id,omitempty"`
-		Email         string `json:"email"`
-		VerifiedEmail bool   `json:"verified_email"`
-		PictureURL    string `json:"picture,omitempty"`
-	}
-	if err := json.Unmarshal(body, &userInfo); err != nil {
-		fmt.Printf("Unable to parse user info: %v\n", err)
-		return
-	}
-
-	// Print the user's email
-	fmt.Printf("User's ID: %s\n", userInfo.ID)
-	fmt.Printf("User's email: %s\n", userInfo.Email)
-	fmt.Printf("Verified: %t\n", userInfo.VerifiedEmail)
+	// Print the user's data
+	fmt.Printf("User's data: %s\n", string(body))
 
 	e := json.NewEncoder(w)
 	e.SetIndent("", "  ")
@@ -187,4 +197,27 @@ func (appSrv *AppServerMock) clientHandler(w http.ResponseWriter, r *http.Reques
 func genCodeChallengeS256(s string) string {
 	s256 := sha256.Sum256([]byte(s))
 	return base64.URLEncoding.EncodeToString(s256[:])
+}
+
+func (appSrv *AppServerMock) TCPAddr() string {
+	if appSrv.server == nil || appSrv.server.Listener == nil {
+		return ""
+	}
+	return appSrv.server.Listener.Addr().String()
+}
+
+func (appSrv *AppServerMock) Stop() {
+	if appSrv.server != nil {
+		appSrv.server.Close()
+		appSrv.TestingT.Logf("[AppSrv] : shutdown")
+	}
+}
+
+func (appSrv *AppServerMock) dumpRequest(header string, r *http.Request) {
+	data, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		appSrv.TestingT.Errorf("[AppSrv] %s : dump failed %+v", header, err)
+	} else {
+		appSrv.TestingT.Logf("[AppSrv] : ---- %s request ----\n%s", header, data)
+	}
 }

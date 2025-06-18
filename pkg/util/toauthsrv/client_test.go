@@ -12,15 +12,10 @@ import (
 	"testing"
 )
 
-var ()
-
 func TestOAuthFlow(t *testing.T) {
 	idpSrv := &IDPServerMock{
-		GenericMock: GenericMock{
-			Name:     "IDPSrv",
-			Addr:     "localhost:9096",
-			TestingT: t,
-		},
+		Addr:     "localhost:9096",
+		TestingT: t,
 	}
 	idpSrv.Start(server.NewConfig())
 	defer idpSrv.Stop()
@@ -39,11 +34,8 @@ func TestOAuthFlow(t *testing.T) {
 	}
 
 	appSrv := &AppServerMock{
-		GenericMock: GenericMock{
-			Name:     "AppSrv",
-			Addr:     "localhost:9094",
-			TestingT: t,
-		},
+		Addr:     "localhost:9094",
+		TestingT: t,
 	}
 	appSrv.Start(&config, authServerURL)
 	defer appSrv.Stop()

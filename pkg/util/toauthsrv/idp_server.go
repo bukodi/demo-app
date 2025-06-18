@@ -8,17 +8,29 @@ import (
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
+	"testing"
 )
 
 type IDPServerMock struct {
-	GenericMock
+	Addr           string
+	TestingT       *testing.T
+	server         *httptest.Server
+	mux            *http.ServeMux
 	manager        *manage.Manager
 	clientCfgStore *store.ClientStore
 	oauthSrv       *server.Server
 }
 
 func (idpSrv *IDPServerMock) Start(srvCfg *server.Config) {
-	idpSrv.initGeneric()
+	if idpSrv.TestingT == nil {
+		panic("TestingT not set")
+	}
+
+	idpSrv.mux = http.NewServeMux()
 
 	idpSrv.manager = manage.NewDefaultManager()
 	idpSrv.manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
@@ -53,18 +65,52 @@ func (idpSrv *IDPServerMock) Start(srvCfg *server.Config) {
 		idpSrv.TestingT.Errorf("Response Error: %+v", re.Error)
 	})
 
-	idpSrv.rootMux.HandleFunc("/login", idpSrv.loginHandler)
-	idpSrv.rootMux.HandleFunc("/auth", idpSrv.authnHandler)
-	idpSrv.rootMux.HandleFunc("/oauth/authorize", idpSrv.authzHandler)
-	idpSrv.rootMux.HandleFunc("/oauth/token", idpSrv.tokenHandler)
-	idpSrv.rootMux.HandleFunc("/test", idpSrv.testHandler)
+	idpSrv.mux.HandleFunc("/login", idpSrv.loginHandler)
+	idpSrv.mux.HandleFunc("/auth", idpSrv.authnHandler)
+	idpSrv.mux.HandleFunc("/oauth/authorize", idpSrv.authzHandler)
+	idpSrv.mux.HandleFunc("/oauth/token", idpSrv.tokenHandler)
+	idpSrv.mux.HandleFunc("/test", idpSrv.testHandler)
 
-	idpSrv.startGeneric()
-	idpSrv.TestingT.Logf("["+idpSrv.Name+"] :"+`
-  Point your OAuth client Auth endpoint to https://%s/oauth/authorize
-  Point your OAuth client Token endpoint to https://%s/oauth/token`, idpSrv.TCPAddr(), idpSrv.TCPAddr())
+	idpSrv.server = httptest.NewUnstartedServer(idpSrv.mux)
+
+	// Set the server to listen on the specified address
+	if listener, err := net.Listen("tcp", idpSrv.Addr); err != nil {
+		idpSrv.TestingT.Fatalf("[IDPSrv] : Failed to create listener: %v", err)
+		return
+	} else {
+		idpSrv.server.Listener = listener
+	}
+
+	idpSrv.server.Start()
+	idpSrv.TestingT.Logf("[IDPSrv] : started on http://%s", idpSrv.TCPAddr())
+	idpSrv.TestingT.Logf("[IDPSrv] :"+`
+  Point your OAuth client Auth endpoint to http://%s/oauth/authorize
+  Point your OAuth client Token endpoint to http://%s/oauth/token`, idpSrv.TCPAddr(), idpSrv.TCPAddr())
 }
 
 func (idpSrv *IDPServerMock) SetClientConfig(cliCfg *models.Client) error {
 	return idpSrv.clientCfgStore.Set(cliCfg.ID, cliCfg)
+}
+
+func (idpSrv *IDPServerMock) TCPAddr() string {
+	if idpSrv.server == nil || idpSrv.server.Listener == nil {
+		return ""
+	}
+	return idpSrv.server.Listener.Addr().String()
+}
+
+func (idpSrv *IDPServerMock) Stop() {
+	if idpSrv.server != nil {
+		idpSrv.server.Close()
+		idpSrv.TestingT.Logf("[IDPSrv] : shutdown")
+	}
+}
+
+func (idpSrv *IDPServerMock) dumpRequest(header string, r *http.Request) {
+	data, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		idpSrv.TestingT.Errorf("[IDPSrv] %s : dump failed %+v", header, err)
+	} else {
+		idpSrv.TestingT.Logf("[IDPSrv] : ---- %s request ----\n%s", header, data)
+	}
 }
