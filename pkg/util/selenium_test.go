@@ -36,9 +36,24 @@ func TestSeleniumBasic(t *testing.T) {
 	}
 	defer service.Stop()
 
+	// Configure Chrome options for CI environment
+	chromeOpts := []string{
+		"--headless",                   // Run in headless mode
+		"--no-sandbox",                 // Required for running as root in containers
+		"--disable-dev-shm-usage",      // Overcome limited resource problems
+		"--disable-gpu",                // Disable GPU acceleration
+		"--remote-debugging-port=9222", // Enable remote debugging
+		"--disable-web-security",       // Disable web security (use with caution)
+		"--disable-features=VizDisplayCompositor",
+		"--user-data-dir=/tmp/chrome-test-profile", // Specify unique user data directory
+	}
+
 	// Connect to the WebDriver instance running on localhost
 	caps := selenium.Capabilities{
 		"browserName": "chrome",
+		"goog:chromeOptions": map[string]interface{}{
+			"args": chromeOpts,
+		},
 	}
 	// Fix: Connect to the local WebDriver server, not to example.com
 	webDriverURL := fmt.Sprintf("http://localhost:%d/wd/hub", port)

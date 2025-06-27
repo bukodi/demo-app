@@ -28,7 +28,10 @@ var (
 )
 
 func TestGoogleOAuth(t *testing.T) {
-	t.Skip("Only manual")
+	if os.Getenv("CI") == "true" {
+		t.Skip("Skipping this test in CI environment")
+	}
+
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	appSrv := httptest.NewUnstartedServer(http.NewServeMux())
