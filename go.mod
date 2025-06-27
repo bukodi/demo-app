@@ -20,13 +20,13 @@ require (
 	github.com/kr/pretty v0.3.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.9.1
+	github.com/tebeka/selenium v0.9.9
 	golang.org/x/crypto v0.39.0
 	golang.org/x/net v0.41.0
 	golang.org/x/oauth2 v0.30.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.30.0
 	gotest.tools/v3 v3.5.1
-
 )
 
 require (
@@ -49,6 +49,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.30.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.20 // indirect
 	github.com/aws/smithy-go v1.22.3 // indirect
+	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
@@ -79,18 +80,17 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/tidwall/btree v0.0.0-20191029221954-400434d76274 // indirect
 	github.com/tidwall/buntdb v1.1.2 // indirect
-	github.com/tidwall/gjson v1.12.1 // indirect
+	github.com/tidwall/gjson v1.14.2 // indirect
 	github.com/tidwall/grect v0.0.0-20161006141115-ba9a043346eb // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tidwall/rtree v0.0.0-20180113144539-6cd427091e0e // indirect
 	github.com/tidwall/tinyqueue v0.0.0-20180302190814-1e39f5511563 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.52.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
 	go.opentelemetry.io/otel v1.36.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.27.0 // indirect
 	go.opentelemetry.io/otel/metric v1.36.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.27.0 // indirect
 	go.opentelemetry.io/otel/trace v1.36.0 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/sys v0.33.0 // indirect
@@ -100,3 +100,5 @@ require (
 	modernc.org/memory v1.8.2 // indirect
 	modernc.org/sqlite v1.36.1 // indirect
 )
+
+replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20240903143218-8af14fe29dc1
