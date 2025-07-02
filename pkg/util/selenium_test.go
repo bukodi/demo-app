@@ -32,7 +32,7 @@ func TestSeleniumBasic(t *testing.T) {
 	var opts []selenium.ServiceOption
 	service, err := selenium.NewChromeDriverService(chromeDriverPath, port, opts...)
 	if err != nil {
-		t.Fatalf("Error starting ChromeDriver service: %v", err)
+		t.Fatalf("Error starting ChromeDriver service: %v\nProbably the chromedriver is not installed. Try: \"sudo apt install chromium-chromedriver\"\n", err)
 	}
 	defer service.Stop()
 

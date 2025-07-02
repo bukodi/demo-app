@@ -37,7 +37,7 @@ func TestGoogleOAuth(t *testing.T) {
 	appSrv := httptest.NewUnstartedServer(http.NewServeMux())
 	appSrv.Listener = util.Must(net.Listen("tcp", "localhost:9094"))
 	appSrv.Start()
-	t.Logf("App Server started on %s", appSrv.URL)
+	t.Logf("App Server started on %s", appSrv.URL+"/cica")
 
 	// Create oauthClient srv
 	oauthCfg := oauth2.Config{
@@ -57,6 +57,16 @@ func TestGoogleOAuth(t *testing.T) {
 		oauth2.SetAuthURLParam("code_challenge", genCodeChallengeS256("s256example")),
 		oauth2.SetAuthURLParam("code_challenge_method", "S256"))*/
 		u := oauthCfg.AuthCodeURL("xyz")
+		http.Redirect(w, r, u, http.StatusFound)
+	})
+
+	appSrv.Config.Handler.(*http.ServeMux).HandleFunc("/cica", func(w http.ResponseWriter, r *http.Request) {
+		/*u := appSrv.oauthCfg.AuthCodeURL("xyz",
+		oauth2.SetAuthURLParam("code_challenge", genCodeChallengeS256("s256example")),
+		oauth2.SetAuthURLParam("code_challenge_method", "S256"))*/
+		u := oauthCfg.AuthCodeURL("xyz",
+			oauth2.SetAuthURLParam("redirectAfterOauth", r.URL.Path),
+		)
 		http.Redirect(w, r, u, http.StatusFound)
 	})
 
