@@ -1,0 +1,42 @@
+version: 1
+threshold:
+  compliance: 100
+  coverage: 100
+dependenciesRules:
+  - package: github.com/bukodi/demo-app/pkg/authn
+    shouldOnlyDependsOn:
+      internal:
+        - github.com/bukodi/demo-app/pkg/server
+  - package: github.com/bukodi/demo-app/pkg/domain/user
+    shouldOnlyDependsOn:
+      external:
+        - "**.aws.aws-sdk-go-v2.**"
+  - package: "**.foobar.**"
+    shouldOnlyDependsOn:
+      external:
+        - "gopkg.in/yaml.v3"
+  - package: "**.example.**"
+    shouldNotDependsOn:
+      external:
+        - "github.com/foobar/example-module"
+contentsRules:
+  - package: "**.impl.model"
+    shouldNotContainInterfaces: true
+  - package: "**.impl.configuration"
+    shouldOnlyContainFunctions: true
+  - package: "**.impl.dependencies"
+    shouldNotContainStructs: true
+    shouldNotContainInterfaces: true
+    shouldNotContainMethods: true
+    shouldNotContainFunctions: true
+functionsRules:
+  - package: "**.impl.**"
+    maxParameters: 3
+    maxReturnValues: 2
+    maxPublicFunctionPerFile: 1
+    maxLines: 50
+namingRules:
+  - package: "**.arch-go.**"
+    interfaceImplementationNamingRule:
+      structsThatImplement: "*Connection"
+      shouldHaveSimpleNameEndingWith: "Connection"
