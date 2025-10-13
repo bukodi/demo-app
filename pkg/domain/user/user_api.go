@@ -3,6 +3,8 @@ package user
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/bukodi/demo-app/pkg/authn"
 )
 
@@ -17,6 +19,14 @@ type User struct {
 	Email        string `json:"email"`
 	PasswordHash string `json:"password_hash"`
 	Role         string `json:"role"`
+}
+
+type Credential struct {
+	AuthProviderName string    `json:"auth_provider_name"`
+	Description      string    `json:"description"`
+	EncyrptedData    string    `json:"encrypted_data"`
+	EncyrptionKeyId  string    `json:"encryption_key_id"`
+	LastUpdated      time.Time `json:"last_updated"`
 }
 
 func Create(ctx context.Context, email string, password string) (*User, error) {
