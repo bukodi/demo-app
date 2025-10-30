@@ -2,17 +2,18 @@ package toauthsrv
 
 import (
 	"context"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
+	"testing"
+
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
-	"net"
-	"net/http"
-	"net/http/httptest"
-	"net/http/httputil"
-	"testing"
 )
 
 type IDPServerMock struct {

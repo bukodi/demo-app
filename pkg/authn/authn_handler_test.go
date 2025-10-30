@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/bukodi/demo-app/pkg/server"
 	"io"
 	"log"
 	"log/slog"
@@ -12,6 +11,8 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"testing"
+
+	"github.com/bukodi/demo-app/pkg/server"
 )
 
 func TestSetUser(t *testing.T) {

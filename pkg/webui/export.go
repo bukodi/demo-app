@@ -5,10 +5,11 @@ import (
 	"archive/zip"
 	"compress/gzip"
 	"errors"
-	demoapp "github.com/bukodi/demo-app"
 	"io"
 	"io/fs"
 	"path/filepath"
+
+	demoapp "github.com/bukodi/demo-app"
 )
 
 func ExportTGZ(out io.WriteCloser) (retErr error) {

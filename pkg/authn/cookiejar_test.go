@@ -2,13 +2,14 @@ package authn
 
 import (
 	"fmt"
-	"golang.org/x/net/publicsuffix"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
 	"testing"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 func TestCookieJar(t *testing.T) {

@@ -2,8 +2,9 @@ package user
 
 import (
 	"context"
-	"github.com/bukodi/demo-app/pkg/authn"
 	"slices"
+
+	"github.com/bukodi/demo-app/pkg/authn"
 )
 
 type fakeUser struct {

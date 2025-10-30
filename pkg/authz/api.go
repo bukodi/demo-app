@@ -2,6 +2,7 @@ package authz
 
 import (
 	"context"
+
 	"github.com/bukodi/demo-app/pkg/authn"
 )
 

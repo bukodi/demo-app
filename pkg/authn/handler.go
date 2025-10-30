@@ -3,10 +3,11 @@ package authn
 import (
 	"context"
 	"encoding/json"
-	"github.com/bukodi/demo-app/pkg/server"
 	"log/slog"
 	"net/http"
 	"slices"
+
+	"github.com/bukodi/demo-app/pkg/server"
 )
 
 const cookieName = "X-User-Token"

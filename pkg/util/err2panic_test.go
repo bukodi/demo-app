@@ -2,8 +2,9 @@ package util
 
 import (
 	"errors"
-	"gotest.tools/v3/assert"
 	"testing"
+
+	"gotest.tools/v3/assert"
 )
 
 func TestMustSimple(t *testing.T) {

@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/bukodi/demo-app/pkg/webui"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func init() {

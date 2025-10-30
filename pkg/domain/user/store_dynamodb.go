@@ -3,12 +3,13 @@ package user
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/bukodi/demo-app/pkg/data/dyndb"
-	"log/slog"
 )
 
 // Based on this description: https://dynobase.dev/dynamodb-golang-query-examples/

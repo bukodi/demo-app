@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+
 	"github.com/bukodi/demo-app/pkg/data/gormdb"
 	"gorm.io/gorm"
 )

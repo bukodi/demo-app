@@ -6,9 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/go-oauth2/oauth2/v4/models"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
 	"io"
 	"net"
 	"net/http"
@@ -16,6 +13,10 @@ import (
 	"net/http/httputil"
 	"testing"
 	"time"
+
+	"github.com/go-oauth2/oauth2/v4/models"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 type AppServerMock struct {

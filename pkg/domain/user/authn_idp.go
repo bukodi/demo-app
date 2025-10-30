@@ -2,8 +2,9 @@ package user
 
 import (
 	"context"
-	"github.com/bukodi/demo-app/pkg/authn"
 	"log/slog"
+
+	"github.com/bukodi/demo-app/pkg/authn"
 )
 
 const builtinIDPName = "built-in"

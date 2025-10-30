@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/bukodi/demo-app/pkg/server"
 	"io"
 	"log/slog"
 	"math/rand/v2"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/bukodi/demo-app/pkg/server"
 )
 
 func TestUserStoreTiDBGORM(t *testing.T) {

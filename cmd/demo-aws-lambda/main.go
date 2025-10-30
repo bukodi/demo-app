@@ -4,6 +4,11 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
+	"io"
+	"log/slog"
+	"os"
+	"time"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -15,10 +20,6 @@ import (
 	_ "github.com/bukodi/demo-app/pkg/domain/user"
 	"github.com/bukodi/demo-app/pkg/server"
 	"github.com/kr/pretty"
-	"io"
-	"log/slog"
-	"os"
-	"time"
 
 	_ "github.com/bukodi/demo-app/pkg/init_by_tags"
 )

@@ -4,10 +4,11 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
-	"github.com/go-session/session"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/go-session/session"
 )
 
 const sessKeyLoggedInUserID = "LoggedInUserID"

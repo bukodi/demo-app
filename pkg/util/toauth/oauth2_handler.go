@@ -3,10 +3,11 @@ package toauth
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bukodi/demo-app/pkg/util/errlog"
-	"golang.org/x/oauth2"
 	"io"
 	"net/http"
+
+	"github.com/bukodi/demo-app/pkg/util/errlog"
+	"golang.org/x/oauth2"
 )
 
 type OAuth2IDP struct {

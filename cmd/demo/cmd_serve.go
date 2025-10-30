@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	demo_app "github.com/bukodi/demo-app"
-	"github.com/bukodi/demo-app/pkg/server"
-	"github.com/spf13/cobra"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
+
+	demo_app "github.com/bukodi/demo-app"
+	"github.com/bukodi/demo-app/pkg/server"
+	"github.com/spf13/cobra"
 )
 
 func init() {

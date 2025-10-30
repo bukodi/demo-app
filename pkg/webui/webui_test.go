@@ -1,11 +1,12 @@
 package webui
 
 import (
-	"github.com/bukodi/demo-app/pkg/server"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/bukodi/demo-app/pkg/server"
 )
 
 func TestIndexHtml(t *testing.T) {

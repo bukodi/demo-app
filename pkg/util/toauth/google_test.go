@@ -3,12 +3,11 @@ package toauth
 import (
 	"bytes"
 	"fmt"
-	"github.com/bukodi/demo-app/pkg/util"
 	"log/slog"
 	"net/http/cookiejar"
 
-	//"github.com/bukodi/demo-app/pkg/util/toauthsrv"
-	"golang.org/x/oauth2"
+	"github.com/bukodi/demo-app/pkg/util"
+
 	"io"
 	"net"
 	"net/http"
@@ -18,6 +17,9 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	//"github.com/bukodi/demo-app/pkg/util/toauthsrv"
+	"golang.org/x/oauth2"
 )
 
 var (

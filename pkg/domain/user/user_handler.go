@@ -2,10 +2,11 @@ package user
 
 import (
 	"encoding/json"
-	"github.com/bukodi/demo-app/pkg/authz"
-	"github.com/bukodi/demo-app/pkg/server"
 	"log/slog"
 	"net/http"
+
+	"github.com/bukodi/demo-app/pkg/authz"
+	"github.com/bukodi/demo-app/pkg/server"
 )
 
 func init() {

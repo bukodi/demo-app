@@ -2,8 +2,9 @@ package server
 
 import (
 	"fmt"
-	demo_app "github.com/bukodi/demo-app"
 	"net/http"
+
+	demo_app "github.com/bukodi/demo-app"
 )
 
 func init() {

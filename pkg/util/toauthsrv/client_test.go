@@ -3,13 +3,14 @@ package toauthsrv
 import (
 	"bytes"
 	"fmt"
-	"github.com/go-oauth2/oauth2/v4/models"
-	"github.com/go-oauth2/oauth2/v4/server"
-	"golang.org/x/oauth2"
 	"io"
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/go-oauth2/oauth2/v4/models"
+	"github.com/go-oauth2/oauth2/v4/server"
+	"golang.org/x/oauth2"
 )
 
 func TestOAuthFlow(t *testing.T) {

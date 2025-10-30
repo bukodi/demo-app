@@ -1,9 +1,10 @@
 package authn
 
 import (
-	"github.com/bukodi/demo-app/pkg/server"
 	"log/slog"
 	"net/http"
+
+	"github.com/bukodi/demo-app/pkg/server"
 )
 
 var pkgLogger *slog.Logger = slog.With("pkg", "authn")

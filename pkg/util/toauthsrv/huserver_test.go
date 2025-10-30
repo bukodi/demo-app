@@ -1,13 +1,14 @@
 package toauthsrv
 
 import (
-	"github.com/bukodi/demo-app/pkg/util"
 	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
+
+	"github.com/bukodi/demo-app/pkg/util"
 )
 
 func TestHttpUtil(t *testing.T) {

@@ -1,9 +1,10 @@
 package webui
 
 import (
+	"net/http"
+
 	demoapp "github.com/bukodi/demo-app"
 	"github.com/bukodi/demo-app/pkg/server"
-	"net/http"
 )
 
 func init() {

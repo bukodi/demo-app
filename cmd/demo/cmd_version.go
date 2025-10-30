@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	demo_app "github.com/bukodi/demo-app"
 	"runtime/debug"
+
+	demo_app "github.com/bukodi/demo-app"
 
 	"github.com/spf13/cobra"
 )

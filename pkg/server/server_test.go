@@ -2,11 +2,12 @@ package server
 
 import (
 	"fmt"
-	demo_app "github.com/bukodi/demo-app"
 	"io"
 	"log/slog"
 	"net/http"
 	"testing"
+
+	demo_app "github.com/bukodi/demo-app"
 )
 
 func TestServer(t *testing.T) {
