@@ -33,6 +33,7 @@ func TestGoogleOAuth(t *testing.T) {
 	if os.Getenv("CI") == "true" {
 		t.Skip("Skipping this test in CI environment")
 	}
+	t.Skip("This test is only for development")
 
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 
