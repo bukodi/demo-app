@@ -100,7 +100,7 @@ jobs:
         working-directory: ./cmd/demo
 
       - name: Create zip for lambda deployment
-        run: zip demo-aws-lambda.zip ./bootstrap ./env.txt
+        run: zip demo-aws-lambda.zip ./bootstrap ./aws-lambda-env.txt
         working-directory: ./cmd/demo
 
       - name: Authenticate AWS
@@ -114,10 +114,10 @@ jobs:
         run: |
           aws lambda update-function-code  --function-name=demo-app-apiv1 --zip-file=fileb://demo-aws-lambda.zip
           aws lambda get-function-url-config --function-name demo-app-apiv1 | jq ".FunctionUrl"
-        working-directory: ./cmd/demo-aws-lambda
+        working-directory: ./cmd/demo
 
       - name: Create AWS lambda artifact
         uses: actions/upload-artifact@v4
         with:
           name: demo-aws-lambda-wrapper
-          path: cmd/demo-aws-lambda/demo-aws-lambda.zip
+          path: cmd/demo/demo-aws-lambda.zip

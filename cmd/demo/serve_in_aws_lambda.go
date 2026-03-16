@@ -55,11 +55,11 @@ func ServeInAWSLambda() error {
 		slog.Error("Error loading system cert pool", "err", err)
 	}
 
-	envTxt, err := os.ReadFile("env.txt")
+	envTxt, err := os.ReadFile("aws-lambda-env.txt")
 	if err != nil {
-		slog.Error("Error reading env.txt", "err", err)
+		slog.Error("Error reading aws-lambda-env.txt", "err", err)
 	} else {
-		slog.Info(fmt.Sprintf("env.txt: %s", envTxt))
+		slog.Info(fmt.Sprintf("aws-lambda-env.txt: %s", envTxt))
 	}
 
 	srv := server.NewServer("")
