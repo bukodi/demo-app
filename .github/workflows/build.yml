@@ -26,7 +26,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.26.1'
-          cache: true
 
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@latest
@@ -98,11 +97,11 @@ jobs:
 
       - name: Build aws lambda handler
         run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -tags lambda.norpc -o bootstrap
-        working-directory: ./cmd/demo-aws-lambda
+        working-directory: ./cmd/demo
 
       - name: Create zip for lambda deployment
         run: zip demo-aws-lambda.zip ./bootstrap ./env.txt
-        working-directory: ./cmd/demo-aws-lambda
+        working-directory: ./cmd/demo
 
       - name: Authenticate AWS
         uses: aws-actions/configure-aws-credentials@v4

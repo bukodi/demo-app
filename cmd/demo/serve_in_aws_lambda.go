@@ -33,7 +33,7 @@ func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 	return resp, err
 }
 
-func main() {
+func ServeInAWSLambda() error {
 	slog.Info("Starting Lambda")
 
 	if env, err := loadEnvFromS3(); err != nil {
@@ -55,17 +55,18 @@ func main() {
 		slog.Error("Error loading system cert pool", "err", err)
 	}
 
-	envtxt, err := os.ReadFile("env.txt")
+	envTxt, err := os.ReadFile("env.txt")
 	if err != nil {
 		slog.Error("Error reading env.txt", "err", err)
 	} else {
-		slog.Info(fmt.Sprintf("env.txt: %s", envtxt))
+		slog.Info(fmt.Sprintf("env.txt: %s", envTxt))
 	}
 
 	srv := server.NewServer("")
 	lambdaToHttp = httpadapter.NewV2(srv.RootHandler())
 	lambda.Start(Handler)
 	slog.Info("Lambda finished")
+	return nil
 }
 
 func loadEnvFromS3() ([]byte, error) {

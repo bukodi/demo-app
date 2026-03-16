@@ -1,9 +1,20 @@
 package main
 
-import _ "github.com/bukodi/demo-app/pkg/init_by_tags"
+import (
+	"os"
+
+	_ "github.com/bukodi/demo-app/pkg/init_by_tags"
+)
 
 func main() {
-	err := rootCmd.Execute()
+	var err error
+	if os.Getenv("AWS_LAMBDA_FUNCTION_NAME") != "" {
+		// Running in Lambda
+		err = ServeInAWSLambda()
+	} else {
+		err = rootCmd.Execute()
+	}
+
 	if err != nil {
 		panic(err)
 	}
