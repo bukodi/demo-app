@@ -57,12 +57,12 @@ func (idpSrv *IDPServerMock) Start(srvCfg *server.Config) {
 
 	idpSrv.oauthSrv.SetUserAuthorizationHandler(idpSrv.userAuthorizeHandler)
 
-	idpSrv.oauthSrv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
+	idpSrv.oauthSrv.SetInternalErrorHandler(func(ctx context.Context, err error) (re *errors.Response) {
 		idpSrv.TestingT.Errorf("Internal Error: %+v", err)
 		return
 	})
 
-	idpSrv.oauthSrv.SetResponseErrorHandler(func(re *errors.Response) {
+	idpSrv.oauthSrv.SetResponseErrorHandler(func(ctx context.Context, re *errors.Response) {
 		idpSrv.TestingT.Errorf("Response Error: %+v", re.Error)
 	})
 
